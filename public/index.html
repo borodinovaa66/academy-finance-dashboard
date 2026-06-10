@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Финансовый дашборд</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <section id="loginScreen" class="login-screen">
+      <form id="loginForm" class="login-card">
+        <div class="brand-row">
+          <div class="brand-mark">BI</div>
+          <div>
+            <h1>Финансовый дашборд</h1>
+            <p>Вход для собственника, бухгалтера и администратора.</p>
+          </div>
+        </div>
+        <label>
+          Логин
+          <input name="login" autocomplete="username" required />
+        </label>
+        <label>
+          Пароль
+          <input name="password" type="password" autocomplete="current-password" required />
+        </label>
+        <button class="primary-action" type="submit">Войти</button>
+        <div id="loginError" class="error-text"></div>
+      </form>
+    </section>
+
+    <div id="app" class="app-shell hidden">
+      <aside class="sidebar">
+        <div class="brand-row">
+          <div class="brand-mark">BI</div>
+          <div>
+            <div class="brand-title">Финансы</div>
+            <div id="roleLabel" class="brand-subtitle">роль</div>
+          </div>
+        </div>
+
+        <nav id="nav" class="nav"></nav>
+
+        <div class="user-panel">
+          <div id="userName" class="user-name"></div>
+          <button id="logoutButton" class="ghost-action" type="button">Выйти</button>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">academy-management.ru</p>
+            <h1 id="pageTitle">Финансовый контроль</h1>
+          </div>
+          <label class="month-picker">
+            Месяц
+            <input id="monthInput" type="month" />
+          </label>
+        </header>
+
+        <section id="dashboardView" class="view">
+          <div class="section-heading">
+            <div>
+              <h2>Экран собственника</h2>
+              <p>План, факт, прогноз и текущий денежный поток.</p>
+            </div>
+          </div>
+
+          <section class="kpi-grid">
+            <article class="metric-card income">
+              <div class="metric-label">Поступления от клиентов</div>
+              <div id="clientIncome" class="metric-value">0</div>
+              <div id="clientPlan" class="metric-meta">план 0</div>
+            </article>
+            <article class="metric-card deposit">
+              <div class="metric-label">% по депозитам</div>
+              <div id="depositIncome" class="metric-value">0</div>
+              <div id="depositPlan" class="metric-meta">план 0</div>
+            </article>
+            <article class="metric-card expense">
+              <div class="metric-label">Расходы</div>
+              <div id="expense" class="metric-value">0</div>
+              <div id="expensePlan" class="metric-meta">план 0</div>
+            </article>
+            <article class="metric-card cash">
+              <div class="metric-label">Остаток на счетах</div>
+              <div id="cashBalance" class="metric-value">0</div>
+              <div id="balanceDate" class="metric-meta">на дату</div>
+            </article>
+          </section>
+
+          <section class="insight-grid">
+            <article class="panel vessel-panel">
+              <div class="panel-header">
+                <div>
+                  <h3>План поступлений</h3>
+                  <p>Сосуд показывает, насколько факт приблизился к месячному плану.</p>
+                </div>
+                <div id="forecastBadge" class="forecast-badge">прогноз</div>
+              </div>
+
+              <div class="vessel-layout">
+                <div class="vessel-wrap">
+                  <div class="vessel">
+                    <div id="vesselFill" class="vessel-fill"></div>
+                    <div class="vessel-line plan-line"><span>План</span></div>
+                    <div id="factLine" class="vessel-line fact-line"><span>Факт</span></div>
+                  </div>
+                </div>
+                <div class="vessel-stats">
+                  <div>
+                    <span>План</span>
+                    <strong id="incomePlanTotal">0</strong>
+                  </div>
+                  <div>
+                    <span>Факт</span>
+                    <strong id="incomeFactTotal">0</strong>
+                  </div>
+                  <div>
+                    <span>Прогноз</span>
+                    <strong id="incomeForecast">0</strong>
+                  </div>
+                  <div>
+                    <span>Отклонение</span>
+                    <strong id="forecastDelta">0</strong>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-header">
+                <div>
+                  <h3>Чистый денежный поток</h3>
+                  <p>Поступления минус расходы за выбранный месяц.</p>
+                </div>
+                <div id="netCashFlow" class="flow-result">0</div>
+              </div>
+              <div class="flow-scale"><div id="flowBar" class="flow-bar"></div></div>
+              <div id="flowCaption" class="flow-caption"></div>
+            </article>
+
+            <article class="panel wide">
+              <div class="panel-header">
+                <div>
+                  <h3>Динамика по дням</h3>
+                  <p>Накопленные поступления, расходы и остаток.</p>
+                </div>
+              </div>
+              <canvas id="trendCanvas" width="1100" height="340"></canvas>
+            </article>
+          </section>
+        </section>
+
+        <section id="accountingView" class="view">
+          <div class="section-heading">
+            <div>
+              <h2>Ввод данных, планы и справочники</h2>
+              <p>Этот раздел доступен бухгалтеру. Админ сюда не имеет доступа.</p>
+            </div>
+          </div>
+
+          <div class="forms-grid">
+            <form id="entryForm" class="panel data-form">
+              <h3>Ежедневные данные</h3>
+              <label>Дата <input name="report_date" type="date" required /></label>
+              <label>Банк / источник <input name="bank" list="bankList" required /></label>
+              <datalist id="bankList"></datalist>
+              <label>Поступления от клиентов <input name="client_income" type="number" min="0" step="1" required /></label>
+              <label>% по депозитам <input name="deposit_income" type="number" min="0" step="1" required /></label>
+              <label>Расходы <input name="expense" type="number" min="0" step="1" required /></label>
+              <label>Остаток на счетах <input name="cash_balance" type="number" min="0" step="1" required /></label>
+              <label>Комментарий <input name="comment" /></label>
+              <button class="primary-action" type="submit">Сохранить день</button>
+            </form>
+
+            <form id="planForm" class="panel data-form">
+              <h3>План месяца</h3>
+              <label>Месяц <input name="month" type="month" required /></label>
+              <label>План от клиентов <input name="client_income_plan" type="number" min="0" step="1" required /></label>
+              <label>План % по депозитам <input name="deposit_income_plan" type="number" min="0" step="1" required /></label>
+              <label>План расходов <input name="expense_plan" type="number" min="0" step="1" required /></label>
+              <label>План ЧДП <input name="net_cash_flow_plan" type="number" step="1" required /></label>
+              <label>План остатка <input name="cash_balance_plan" type="number" min="0" step="1" required /></label>
+              <button class="primary-action" type="submit">Сохранить план</button>
+            </form>
+
+            <form id="referenceForm" class="panel data-form">
+              <h3>Справочник банков</h3>
+              <label>Новый банк / источник <input name="name" required /></label>
+              <button class="secondary-action" type="submit">Добавить</button>
+              <div id="referencesList" class="chips"></div>
+            </form>
+          </div>
+        </section>
+
+        <section id="usersView" class="view">
+          <div class="section-heading">
+            <div>
+              <h2>Пользователи</h2>
+              <p>Раздел администратора. Только создание и отключение пользователей.</p>
+            </div>
+          </div>
+
+          <div class="forms-grid">
+            <form id="userForm" class="panel data-form">
+              <h3>Новый пользователь</h3>
+              <label>Имя <input name="name" required /></label>
+              <label>Логин <input name="login" required /></label>
+              <label>Пароль <input name="password" type="password" required /></label>
+              <label>
+                Роль
+                <select name="role" required>
+                  <option value="owner">Собственник</option>
+                  <option value="accountant">Бухгалтер</option>
+                  <option value="admin">Админ</option>
+                </select>
+              </label>
+              <button class="primary-action" type="submit">Создать пользователя</button>
+            </form>
+
+            <div class="panel users-panel">
+              <h3>Список пользователей</h3>
+              <div id="usersList" class="users-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <div id="toast" class="toast"></div>
+      </main>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
