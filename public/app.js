@@ -10,6 +10,7 @@ const roleLabels = {
   owner: "Собственник",
   accountant: "Бухгалтер",
   admin: "Админ",
+  viewer: "Доступ к дашборду",
 };
 
 const formatRub = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 0 });

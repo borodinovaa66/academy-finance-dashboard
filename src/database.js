@@ -6,7 +6,7 @@ const { hashPassword } = require("./auth");
 const DATA_DIR = path.join(__dirname, "..", "data");
 const DB_PATH = path.join(DATA_DIR, "finance-dashboard.sqlite");
 
-const roles = new Set(["owner", "accountant", "admin"]);
+const roles = new Set(["owner", "accountant", "admin", "viewer"]);
 
 function nowIso() {
   return new Date().toISOString();
@@ -96,6 +96,39 @@ function migrate(db) {
       payload TEXT NOT NULL DEFAULT '{}',
       created_at TEXT NOT NULL
     );
+  `);
+  ensureViewerRoleAllowed(db);
+}
+
+function ensureViewerRoleAllowed(db) {
+  const table = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'users'").get();
+  if (!table?.sql || table.sql.includes("'viewer'")) return;
+
+  db.exec(`
+    PRAGMA foreign_keys = OFF;
+
+    CREATE TABLE users_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      login TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      role TEXT NOT NULL CHECK(role IN ('owner', 'accountant', 'admin', 'viewer')),
+      password_hash TEXT NOT NULL,
+      salt TEXT NOT NULL,
+      active INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    INSERT INTO users_new (
+      id, login, name, role, password_hash, salt, active, created_at, updated_at
+    )
+    SELECT id, login, name, role, password_hash, salt, active, created_at, updated_at
+    FROM users;
+
+    DROP TABLE users;
+    ALTER TABLE users_new RENAME TO users;
+
+    PRAGMA foreign_keys = ON;
   `);
 }
 
