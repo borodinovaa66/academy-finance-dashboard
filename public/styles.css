@@ -281,6 +281,15 @@ label {
   font-size: 13px;
   font-weight: 700;
 }
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.checkbox-label input {
+  width: 18px;
+  min-height: 18px;
+}
 input, select {
   width: 100%;
   min-height: 42px;
@@ -327,6 +336,12 @@ input:focus, select:focus {
 }
 .user-row strong { display: block; }
 .user-row span { color: var(--muted); font-size: 13px; }
+.user-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
 .danger-action {
   min-height: 34px;
   border: 1px solid var(--red);
@@ -335,6 +350,11 @@ input:focus, select:focus {
   color: var(--red);
   cursor: pointer;
   font-weight: 800;
+}
+.compact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 .toast {
   position: fixed;

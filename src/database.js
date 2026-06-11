@@ -224,13 +224,50 @@ function createUser(db, actorId, input) {
   if (!input.login || !input.password || !input.name) {
     throw Object.assign(new Error("Заполните логин, имя и пароль"), { statusCode: 400 });
   }
+  const login = input.login.trim();
+  const duplicate = db.prepare("SELECT id FROM users WHERE login = ?").get(login);
+  if (duplicate) throw Object.assign(new Error("Такой логин уже занят"), { statusCode: 400 });
   const { salt, hash } = hashPassword(input.password);
   const result = db.prepare(`
     INSERT INTO users (login, name, role, password_hash, salt, active, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, 1, ?, ?)
-  `).run(input.login.trim(), input.name.trim(), input.role, hash, salt, nowIso(), nowIso());
-  log(db, actorId, "create", "user", String(result.lastInsertRowid), { login: input.login, role: input.role });
+  `).run(login, input.name.trim(), input.role, hash, salt, nowIso(), nowIso());
+  log(db, actorId, "create", "user", String(result.lastInsertRowid), { login, role: input.role });
   return result.lastInsertRowid;
+}
+
+function updateUser(db, actorId, id, input) {
+  if (!roles.has(input.role)) throw Object.assign(new Error("Недопустимая роль"), { statusCode: 400 });
+  if (!input.login || !input.name) {
+    throw Object.assign(new Error("Заполните логин и имя"), { statusCode: 400 });
+  }
+  const existing = db.prepare("SELECT id FROM users WHERE id = ?").get(id);
+  if (!existing) throw Object.assign(new Error("Пользователь не найден"), { statusCode: 404 });
+
+  const login = input.login.trim();
+  const name = input.name.trim();
+  const active = input.active === false || input.active === "false" ? 0 : 1;
+  const duplicate = db.prepare("SELECT id FROM users WHERE login = ? AND id != ?").get(login, id);
+  if (duplicate) throw Object.assign(new Error("Такой логин уже занят"), { statusCode: 400 });
+
+  if (input.password) {
+    const { salt, hash } = hashPassword(input.password);
+    db.prepare(`
+      UPDATE users
+      SET login = ?, name = ?, role = ?, password_hash = ?, salt = ?, active = ?, updated_at = ?
+      WHERE id = ?
+    `).run(login, name, input.role, hash, salt, active, nowIso(), id);
+    if (!active) db.prepare("DELETE FROM sessions WHERE user_id = ?").run(id);
+  } else {
+    db.prepare(`
+      UPDATE users
+      SET login = ?, name = ?, role = ?, active = ?, updated_at = ?
+      WHERE id = ?
+    `).run(login, name, input.role, active, nowIso(), id);
+    if (!active) db.prepare("DELETE FROM sessions WHERE user_id = ?").run(id);
+  }
+
+  log(db, actorId, "update", "user", String(id), { login, role: input.role, active: Boolean(active), password_changed: Boolean(input.password) });
 }
 
 function disableUser(db, actorId, id) {
@@ -433,6 +470,7 @@ module.exports = {
   openDatabase,
   publicUser,
   summarize,
+  updateUser,
   upsertEntry,
   upsertPlan,
 };

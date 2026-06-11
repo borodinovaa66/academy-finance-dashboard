@@ -228,7 +228,7 @@
           <div class="section-heading">
             <div>
               <h2>Пользователи</h2>
-              <p>Раздел администратора. Только создание и отключение пользователей.</p>
+              <p>Раздел администратора. Создание, редактирование, смена роли, логина и пароля.</p>
             </div>
           </div>
 
@@ -248,6 +248,31 @@
                 </select>
               </label>
               <button class="primary-action" type="submit">Создать пользователя</button>
+            </form>
+
+            <form id="editUserForm" class="panel data-form hidden">
+              <h3>Карточка пользователя</h3>
+              <input name="id" type="hidden" />
+              <label>Имя <input name="name" required /></label>
+              <label>Логин <input name="login" required /></label>
+              <label>Новый пароль <input name="password" type="password" placeholder="Оставьте пустым, если не менять" /></label>
+              <label>
+                Роль
+                <select name="role" required>
+                  <option value="viewer">Доступ к дашборду</option>
+                  <option value="owner">Собственник</option>
+                  <option value="accountant">Бухгалтер</option>
+                  <option value="admin">Админ</option>
+                </select>
+              </label>
+              <label class="checkbox-label">
+                <input name="active" type="checkbox" />
+                Пользователь активен
+              </label>
+              <div class="form-actions compact-actions">
+                <button class="primary-action" type="submit">Сохранить изменения</button>
+                <button class="secondary-action" id="cancelEditUserButton" type="button">Отмена</button>
+              </div>
             </form>
 
             <div class="panel users-panel">

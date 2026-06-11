@@ -221,11 +221,29 @@ function renderUsers() {
             <strong>${escapeHtml(user.name)}</strong>
             <span>${escapeHtml(user.login)} · ${roleLabels[user.role]} · ${user.active ? "активен" : "отключен"}</span>
           </div>
-          ${user.active ? `<button class="danger-action" data-delete-user="${user.id}" type="button">Отключить</button>` : ""}
+          <div class="user-actions">
+            <button class="secondary-action" data-edit-user="${user.id}" type="button">Изменить</button>
+            ${user.active ? `<button class="danger-action" data-delete-user="${user.id}" type="button">Отключить</button>` : ""}
+          </div>
         </div>
       `,
     )
     .join("");
+  document.querySelectorAll("[data-edit-user]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const user = state.users.find((item) => String(item.id) === String(button.dataset.editUser));
+      if (!user) return;
+      const form = byId("editUserForm");
+      form.elements.id.value = user.id;
+      form.elements.name.value = user.name;
+      form.elements.login.value = user.login;
+      form.elements.password.value = "";
+      form.elements.role.value = user.role;
+      form.elements.active.checked = Boolean(user.active);
+      form.classList.remove("hidden");
+      form.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
   document.querySelectorAll("[data-delete-user]").forEach((button) => {
     button.addEventListener("click", async () => {
       await api(`/api/users/${button.dataset.deleteUser}`, { method: "DELETE" });
@@ -338,6 +356,35 @@ byId("userForm").addEventListener("submit", async (event) => {
   event.currentTarget.reset();
   toast("Пользователь создан");
   await loadData();
+});
+
+byId("editUserForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const formData = new FormData(form);
+  const id = formData.get("id");
+  const payload = {
+    name: formData.get("name"),
+    login: formData.get("login"),
+    role: formData.get("role"),
+    active: form.elements.active.checked,
+  };
+  const password = formData.get("password");
+  if (password) payload.password = password;
+  await api(`/api/users/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+  form.reset();
+  form.classList.add("hidden");
+  toast("Пользователь обновлен");
+  await loadData();
+});
+
+byId("cancelEditUserButton").addEventListener("click", () => {
+  const form = byId("editUserForm");
+  form.reset();
+  form.classList.add("hidden");
 });
 
 init().catch((error) => {

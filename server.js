@@ -23,6 +23,7 @@ const {
   openDatabase,
   publicUser,
   summarize,
+  updateUser,
   upsertEntry,
   upsertPlan,
 } = require("./src/database");
@@ -143,6 +144,17 @@ async function handleApi(req, res, url) {
   }
 
   const userDeleteMatch = url.pathname.match(/^\/api\/users\/(\d+)$/);
+  if (req.method === "PUT" && userDeleteMatch) {
+    requireRole(user, ["admin"]);
+    const targetId = Number(userDeleteMatch[1]);
+    const body = await parseBody(req);
+    if (targetId === user.id && (body.active === false || body.active === "false" || body.role !== "admin")) {
+      throw Object.assign(new Error("Нельзя отключить себя или снять с себя роль админа"), { statusCode: 400 });
+    }
+    updateUser(db, user.id, targetId, body);
+    return sendJson(res, 200, { ok: true });
+  }
+
   if (req.method === "DELETE" && userDeleteMatch) {
     requireRole(user, ["admin"]);
     const targetId = Number(userDeleteMatch[1]);
