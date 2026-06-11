@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Finance dashboard">
+  <rect width="64" height="64" rx="14" fill="#18212c"/>
+  <path d="M22 14h20c4 0 7 3 7 7v23c0 10-7 17-17 17S15 54 15 44V21c0-4 3-7 7-7Z" fill="#f8fafc"/>
+  <path d="M20 39c4-2 8-2 12 0s8 2 12 0v6c0 7-5 12-12 12s-12-5-12-12v-6Z" fill="#167a55"/>
+  <path d="M20 27h24" stroke="#2364aa" stroke-width="4" stroke-linecap="round"/>
+  <path d="M26 14h12" stroke="#18212c" stroke-width="4" stroke-linecap="round"/>
+</svg>
