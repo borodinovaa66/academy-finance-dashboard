@@ -71,6 +71,12 @@ p { color: var(--muted); }
   color: #f7fafc;
 }
 .brand-title { font-size: 18px; font-weight: 800; }
+.brand-org {
+  margin-top: 3px;
+  color: #dbe4ed;
+  font-size: 12px;
+  font-weight: 700;
+}
 .brand-subtitle { color: #b9c4cf; font-size: 13px; }
 .nav { display: grid; gap: 8px; }
 .nav-button {

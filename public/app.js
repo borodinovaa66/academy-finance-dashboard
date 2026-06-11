@@ -43,7 +43,13 @@ function setView(viewId) {
 }
 
 function availableViews() {
-  if (state.user.role === "admin") return [["usersView", "Пользователи"]];
+  if (state.user.role === "admin") {
+    return [
+      ["dashboardView", "Дашборд"],
+      ["accountingView", "Ввод и планы"],
+      ["usersView", "Пользователи"],
+    ];
+  }
   if (state.user.role === "accountant") {
     return [
       ["dashboardView", "Дашборд"],

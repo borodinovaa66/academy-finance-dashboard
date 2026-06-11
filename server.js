@@ -152,19 +152,19 @@ async function handleApi(req, res, url) {
   }
 
   if (req.method === "POST" && url.pathname === "/api/plans") {
-    requireRole(user, ["accountant"]);
+    requireRole(user, ["accountant", "admin"]);
     upsertPlan(db, user.id, await parseBody(req));
     return sendJson(res, 200, { ok: true });
   }
 
   if (req.method === "POST" && url.pathname === "/api/entries") {
-    requireRole(user, ["accountant"]);
+    requireRole(user, ["accountant", "admin"]);
     upsertEntry(db, user.id, await parseBody(req));
     return sendJson(res, 200, { ok: true });
   }
 
   if (req.method === "POST" && url.pathname === "/api/references") {
-    requireRole(user, ["accountant"]);
+    requireRole(user, ["accountant", "admin"]);
     const id = addReference(db, user.id, await parseBody(req));
     return sendJson(res, 201, { id });
   }
