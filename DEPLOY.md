@@ -1,5 +1,19 @@
 # План деплоя `finance.academy-management.ru`
 
+Статус: выполнено.
+
+Продакшен:
+
+```text
+https://finance.academy-management.ru/
+```
+
+Репозиторий:
+
+```text
+https://github.com/borodinovaa66/academy-finance-dashboard
+```
+
 ## 1. Что делаем сначала
 
 1. Создать GitHub-репозиторий `academy-finance-dashboard`.

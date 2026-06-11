@@ -2,6 +2,12 @@
 
 Production-MVP для `finance.academy-management.ru`.
 
+Продакшен:
+
+```text
+https://finance.academy-management.ru/
+```
+
 ## Что делает приложение
 
 - `owner` смотрит дашборд, план/факт, прогноз и сосуд выполнения плана.
@@ -50,10 +56,10 @@ data/finance-dashboard.sqlite
 
 ## GitHub
 
-Рекомендуемый репозиторий:
+Репозиторий:
 
 ```text
-academy-finance-dashboard
+https://github.com/borodinovaa66/academy-finance-dashboard
 ```
 
 Команды после создания пустого репозитория:
