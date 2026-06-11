@@ -185,6 +185,10 @@ p { color: var(--muted); }
   border-radius: 64px 64px 30px 30px;
   background: linear-gradient(180deg, #ffffff, #eef3f8);
 }
+
+.net-vessel {
+  border-color: #3f4852;
+}
 .vessel::before {
   content: "";
   position: absolute;

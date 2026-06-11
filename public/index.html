@@ -129,15 +129,42 @@
               </div>
             </article>
 
-            <article class="panel">
+            <article class="panel vessel-panel">
               <div class="panel-header">
                 <div>
                   <h3>Чистый денежный поток</h3>
-                  <p>Поступления минус расходы за выбранный месяц.</p>
+                  <p>План, факт и прогноз выполнения чистого денежного потока.</p>
                 </div>
-                <div id="netCashFlow" class="flow-result">0</div>
+                <div id="netFlowForecastBadge" class="forecast-badge">прогноз</div>
               </div>
-              <div class="flow-scale"><div id="flowBar" class="flow-bar"></div></div>
+
+              <div class="vessel-layout">
+                <div class="vessel-wrap">
+                  <div class="vessel net-vessel">
+                    <div id="netVesselFill" class="vessel-fill"></div>
+                    <div class="vessel-line plan-line"><span>План</span></div>
+                    <div id="netFactLine" class="vessel-line fact-line"><span>Факт</span></div>
+                  </div>
+                </div>
+                <div class="vessel-stats">
+                  <div>
+                    <span>План ЧДП</span>
+                    <strong id="netFlowPlan">0</strong>
+                  </div>
+                  <div>
+                    <span>Факт ЧДП</span>
+                    <strong id="netCashFlow">0</strong>
+                  </div>
+                  <div>
+                    <span>Прогноз ЧДП</span>
+                    <strong id="netFlowForecast">0</strong>
+                  </div>
+                  <div>
+                    <span>Отклонение</span>
+                    <strong id="netFlowDelta">0</strong>
+                  </div>
+                </div>
+              </div>
               <div id="flowCaption" class="flow-caption"></div>
             </article>
 

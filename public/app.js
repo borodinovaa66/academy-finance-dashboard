@@ -79,6 +79,9 @@ function renderDashboard() {
   const fillPercent = Math.max(0, Math.min(100, summary.progress * 100));
   const factLinePercent = Math.max(0, Math.min(96, fillPercent));
   const isRisk = summary.forecast_status === "risk";
+  const netFlowFillPercent = Math.max(0, Math.min(100, summary.net_cash_flow_progress * 100));
+  const netFlowFactLinePercent = Math.max(0, Math.min(96, netFlowFillPercent));
+  const isNetFlowRisk = summary.net_cash_flow_status === "risk";
 
   byId("clientIncome").textContent = rub(totals.client_income);
   byId("clientPlan").textContent = `план ${rub(plan.client_income_plan)}`;
@@ -107,10 +110,21 @@ function renderDashboard() {
   net.textContent = rub(summary.net_cash_flow);
   net.classList.toggle("positive", summary.net_cash_flow >= 0);
   net.classList.toggle("negative", summary.net_cash_flow < 0);
-  const flowLimit = Math.max(summary.total_income, totals.expense, 1);
-  byId("flowBar").style.width = `${Math.max(8, Math.min(100, Math.abs(summary.net_cash_flow / flowLimit) * 100))}%`;
-  byId("flowBar").style.background = summary.net_cash_flow >= 0 ? "#167a55" : "#b93737";
-  byId("flowCaption").textContent = summary.net_cash_flow >= 0 ? "Поступления выше расходов." : "Расходы выше поступлений.";
+  byId("netFlowPlan").textContent = rub(plan.net_cash_flow_plan);
+  byId("netFlowForecast").textContent = rub(summary.net_cash_flow_forecast);
+  byId("netFlowDelta").textContent = `${summary.net_cash_flow_delta >= 0 ? "+" : ""}${rub(summary.net_cash_flow_delta)}`;
+  byId("netVesselFill").style.height = `${netFlowFillPercent}%`;
+  byId("netVesselFill").style.background = isNetFlowRisk
+    ? "linear-gradient(180deg, #e16f6f, #b93737)"
+    : "linear-gradient(180deg, #47b883, #167a55)";
+  byId("netFactLine").style.bottom = `${netFlowFactLinePercent}%`;
+  const netBadge = byId("netFlowForecastBadge");
+  netBadge.textContent = isNetFlowRisk ? "риск недовыполнения" : "прогноз выше плана";
+  netBadge.classList.toggle("risk", isNetFlowRisk);
+  byId("flowCaption").textContent =
+    summary.net_cash_flow_forecast >= plan.net_cash_flow_plan
+      ? "При текущем темпе план по чистому денежному потоку будет выполнен."
+      : "При текущем темпе чистый денежный поток не дотягивает до плана.";
 
   drawTrend(summary.entries);
 }

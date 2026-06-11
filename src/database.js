@@ -382,6 +382,15 @@ function summarize(db, month) {
   const incomeForecast = Math.round((totalIncome / dayOfMonth) * daysInMonth);
   const forecastDelta = incomeForecast - planIncome;
   const progress = planIncome > 0 ? Math.min(totalIncome / planIncome, 1.4) : 0;
+  const netCashFlowForecast = Math.round((netCashFlow / dayOfMonth) * daysInMonth);
+  const netCashFlowPlan = plan.net_cash_flow_plan;
+  const netCashFlowDelta = netCashFlowForecast - netCashFlowPlan;
+  const netCashFlowProgress =
+    netCashFlowPlan > 0
+      ? Math.min(Math.max(netCashFlow / netCashFlowPlan, 0), 1.4)
+      : netCashFlow >= netCashFlowPlan
+        ? 1
+        : 0;
 
   return {
     month,
@@ -394,6 +403,10 @@ function summarize(db, month) {
     forecast_delta: forecastDelta,
     forecast_status: forecastDelta >= 0 ? "good" : "risk",
     progress,
+    net_cash_flow_forecast: netCashFlowForecast,
+    net_cash_flow_delta: netCashFlowDelta,
+    net_cash_flow_status: netCashFlowForecast >= netCashFlowPlan ? "good" : "risk",
+    net_cash_flow_progress: netCashFlowProgress,
     days_elapsed: dayOfMonth,
     days_in_month: daysInMonth,
     entries,
