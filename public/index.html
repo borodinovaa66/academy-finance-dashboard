@@ -97,7 +97,7 @@
               <div class="panel-header">
                 <div>
                   <h3>План поступлений</h3>
-                  <p>Сосуд показывает, насколько факт приблизился к месячному плану.</p>
+                  <p>Сосуд показывает, насколько фактические поступления приблизились к месячному плану.</p>
                 </div>
                 <div id="forecastBadge" class="forecast-badge">прогноз</div>
               </div>
@@ -112,7 +112,7 @@
                 </div>
                 <div class="vessel-stats">
                   <div>
-                    <span>План</span>
+                    <span>План поступлений</span>
                     <strong id="incomePlanTotal">0</strong>
                   </div>
                   <div>
@@ -186,7 +186,7 @@
           <div class="section-heading">
             <div>
               <h2>Ввод данных, планы и справочники</h2>
-              <p>Этот раздел доступен бухгалтеру. Админ сюда не имеет доступа.</p>
+              <p>Раздел для внесения ежедневных показателей, плановых значений и справочников.</p>
             </div>
           </div>
 
@@ -207,11 +207,11 @@
             <form id="planForm" class="panel data-form">
               <h3>План месяца</h3>
               <label>Месяц <input name="month" type="month" required /></label>
-              <label>План от клиентов <input name="client_income_plan" type="number" min="0" step="1" required /></label>
-              <label>План % по депозитам <input name="deposit_income_plan" type="number" min="0" step="1" required /></label>
-              <label>План расходов <input name="expense_plan" type="number" min="0" step="1" required /></label>
-              <label>План ЧДП <input name="net_cash_flow_plan" type="number" step="1" required /></label>
-              <label>План остатка <input name="cash_balance_plan" type="number" min="0" step="1" required /></label>
+              <label>Приход денег от клиентов, план <input name="client_income_plan" type="number" min="0" step="1" required /></label>
+              <label>Проценты по депозитам, план <input name="deposit_income_plan" type="number" min="0" step="1" required /></label>
+              <label>Расходы, план <input name="expense_plan" type="number" min="0" step="1" required /></label>
+              <label>Чистый денежный поток, план <input name="net_cash_flow_plan" type="number" step="1" required /></label>
+              <label>Остаток на счетах, план <input name="cash_balance_plan" type="number" min="0" step="1" required /></label>
               <button class="primary-action" type="submit">Сохранить план</button>
             </form>
 

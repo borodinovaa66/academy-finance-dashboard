@@ -90,11 +90,11 @@ function renderDashboard() {
   const isNetFlowRisk = summary.net_cash_flow_status === "risk";
 
   byId("clientIncome").textContent = rub(totals.client_income);
-  byId("clientPlan").textContent = `план ${rub(plan.client_income_plan)}`;
+  byId("clientPlan").textContent = `план прихода ${rub(plan.client_income_plan)}`;
   byId("depositIncome").textContent = rub(totals.deposit_income);
-  byId("depositPlan").textContent = `план ${rub(plan.deposit_income_plan)}`;
+  byId("depositPlan").textContent = `план процентов ${rub(plan.deposit_income_plan)}`;
   byId("expense").textContent = rub(totals.expense);
-  byId("expensePlan").textContent = `план ${rub(plan.expense_plan)}`;
+  byId("expensePlan").textContent = `план расходов ${rub(plan.expense_plan)}`;
   byId("cashBalance").textContent = rub(totals.cash_balance);
   byId("balanceDate").textContent = totals.last_date ? `на ${totals.last_date}` : "нет данных";
 
