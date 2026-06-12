@@ -184,25 +184,33 @@ function drawTrend(entries) {
   ctx.fillStyle = "#f8fafc";
   ctx.fillRect(0, 0, width, height);
 
-  if (!entries.length) {
-    ctx.fillStyle = "#66727f";
-    ctx.font = "700 18px Arial";
-    ctx.fillText("Нет данных за выбранный месяц", 32, 170);
-    return;
-  }
-
-  const rows = entries.map((entry) => ({
-    label: entry.report_date.slice(8, 10),
-    income: entry.client_income + entry.deposit_income,
-    expense: entry.expense,
-    balance: entry.cash_balance,
-  }));
-  const max = Math.max(...rows.flatMap((row) => [row.income, row.expense]), 1);
-  const chartLeft = 64;
+  const [year, month] = state.month.split("-").map(Number);
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const entriesByDay = new Map(entries.map((entry) => [Number(entry.report_date.slice(8, 10)), entry]));
+  const totalIncome = entries.reduce((sum, entry) => sum + entry.client_income + entry.deposit_income, 0);
+  const totalExpense = entries.reduce((sum, entry) => sum + entry.expense, 0);
+  const rows = Array.from({ length: daysInMonth }, (_, index) => {
+    const day = index + 1;
+    const entry = entriesByDay.get(day);
+    return {
+      day,
+      label: String(day).padStart(2, "0"),
+      income: entry ? entry.client_income + entry.deposit_income : 0,
+      expense: entry ? entry.expense : 0,
+      hasData: Boolean(entry),
+    };
+  });
+  const max = Math.max(totalIncome, totalExpense, ...rows.flatMap((row) => [row.income, row.expense]), 1);
+  const chartLeft = 32;
   const chartTop = 36;
-  const chartWidth = width - 100;
-  const chartHeight = height - 88;
-  const barGap = chartWidth / rows.length;
+  const chartRight = width - 28;
+  const chartBottom = height - 56;
+  const chartHeight = chartBottom - chartTop;
+  const totalBlockWidth = 142;
+  const totalGap = 34;
+  const daysLeft = chartLeft + totalBlockWidth + totalGap;
+  const daysWidth = chartRight - daysLeft;
+  const dayGap = daysWidth / daysInMonth;
 
   ctx.strokeStyle = "#d9e0e7";
   ctx.lineWidth = 1;
@@ -210,26 +218,55 @@ function drawTrend(entries) {
     const y = chartTop + (chartHeight / 4) * i;
     ctx.beginPath();
     ctx.moveTo(chartLeft, y);
-    ctx.lineTo(width - 28, y);
+    ctx.lineTo(chartRight, y);
     ctx.stroke();
   }
 
-  rows.forEach((row, index) => {
-    const x = chartLeft + index * barGap + 10;
-    const incomeHeight = (row.income / max) * chartHeight;
-    const expenseHeight = (row.expense / max) * chartHeight;
-    ctx.fillStyle = "#167a55";
-    ctx.fillRect(x, chartTop + chartHeight - incomeHeight, Math.max(10, barGap * 0.28), incomeHeight);
-    ctx.fillStyle = "#b93737";
-    ctx.fillRect(x + Math.max(14, barGap * 0.32), chartTop + chartHeight - expenseHeight, Math.max(10, barGap * 0.28), expenseHeight);
-    ctx.fillStyle = "#66727f";
-    ctx.font = "700 12px Arial";
-    ctx.fillText(row.label, x, height - 28);
-  });
-
   ctx.fillStyle = "#17202a";
   ctx.font = "800 14px Arial";
-  ctx.fillText("зеленый - поступления, красный - расходы", chartLeft, 20);
+  ctx.fillText("зеленый - приход, красный - расход", chartLeft, 20);
+
+  function drawBarPair(x, groupWidth, income, expense, muted = false) {
+    const barWidth = Math.max(4, Math.min(16, groupWidth * 0.34));
+    const gap = Math.max(2, groupWidth * 0.08);
+    const pairWidth = barWidth * 2 + gap;
+    const startX = x + (groupWidth - pairWidth) / 2;
+    const incomeHeight = (income / max) * chartHeight;
+    const expenseHeight = (expense / max) * chartHeight;
+    if (muted) {
+      ctx.strokeStyle = "#d4dde6";
+      ctx.beginPath();
+      ctx.moveTo(x + groupWidth / 2, chartBottom - 2);
+      ctx.lineTo(x + groupWidth / 2, chartBottom);
+      ctx.stroke();
+      return;
+    }
+    ctx.fillStyle = "#167a55";
+    ctx.fillRect(startX, chartBottom - incomeHeight, barWidth, incomeHeight);
+    ctx.fillStyle = "#b93737";
+    ctx.fillRect(startX + barWidth + gap, chartBottom - expenseHeight, barWidth, expenseHeight);
+  }
+
+  drawBarPair(chartLeft + 8, totalBlockWidth - 16, totalIncome, totalExpense);
+  ctx.fillStyle = "#17202a";
+  ctx.font = "800 12px Arial";
+  ctx.fillText("Всего", chartLeft + 36, chartBottom + 18);
+  ctx.fillText("за месяц", chartLeft + 22, chartBottom + 34);
+
+  ctx.strokeStyle = "#c8d3de";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(chartLeft + totalBlockWidth + totalGap / 2, chartTop - 6);
+  ctx.lineTo(chartLeft + totalBlockWidth + totalGap / 2, chartBottom + 8);
+  ctx.stroke();
+
+  rows.forEach((row, index) => {
+    const x = daysLeft + index * dayGap;
+    drawBarPair(x, dayGap, row.income, row.expense, !row.hasData);
+    ctx.fillStyle = row.hasData ? "#66727f" : "#98a3ae";
+    ctx.font = "700 10px Arial";
+    ctx.fillText(row.label, x + Math.max(1, dayGap * 0.14), chartBottom + 22);
+  });
 }
 
 function renderAccountingForms() {
