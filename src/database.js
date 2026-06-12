@@ -217,7 +217,7 @@ function getUserById(db, id) {
 }
 
 function listUsers(db) {
-  return db.prepare("SELECT id, login, name, role, active, created_at, updated_at FROM users ORDER BY role, name").all();
+  return db.prepare("SELECT id, login, name, role, active, created_at, updated_at FROM users WHERE active = 1 ORDER BY role, name").all();
 }
 
 function createUser(db, actorId, input) {

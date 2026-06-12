@@ -149,7 +149,7 @@ async function handleApi(req, res, url) {
     const targetId = Number(userDeleteMatch[1]);
     const body = await parseBody(req);
     if (targetId === user.id && (body.active === false || body.active === "false" || body.role !== "admin")) {
-      throw Object.assign(new Error("Нельзя отключить себя или снять с себя роль админа"), { statusCode: 400 });
+      throw Object.assign(new Error("Нельзя удалить себя или снять с себя роль админа"), { statusCode: 400 });
     }
     updateUser(db, user.id, targetId, body);
     return sendJson(res, 200, { ok: true });
@@ -158,7 +158,7 @@ async function handleApi(req, res, url) {
   if (req.method === "DELETE" && userDeleteMatch) {
     requireRole(user, ["admin"]);
     const targetId = Number(userDeleteMatch[1]);
-    if (targetId === user.id) throw Object.assign(new Error("Нельзя отключить самого себя"), { statusCode: 400 });
+    if (targetId === user.id) throw Object.assign(new Error("Нельзя удалить самого себя"), { statusCode: 400 });
     disableUser(db, user.id, targetId);
     return sendJson(res, 200, { ok: true });
   }

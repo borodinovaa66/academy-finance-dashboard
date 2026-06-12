@@ -104,6 +104,37 @@ function setFormError(id, message = "") {
   el.textContent = message;
 }
 
+function selectedUserFromEditForm() {
+  const id = byId("editUserForm").elements.id.value;
+  return state.users.find((user) => String(user.id) === String(id));
+}
+
+function openDeleteUserConfirm(user) {
+  if (!user) return;
+  const dialog = byId("confirmDialog");
+  dialog.dataset.userId = user.id;
+  byId("confirmMessage").textContent = `Вы действительно хотите удалить пользователя ${user.name}?`;
+  dialog.classList.remove("hidden");
+}
+
+function closeDeleteUserConfirm() {
+  const dialog = byId("confirmDialog");
+  dialog.dataset.userId = "";
+  dialog.classList.add("hidden");
+}
+
+async function deleteUserById(id) {
+  await api(`/api/users/${id}`, { method: "DELETE" });
+  const editForm = byId("editUserForm");
+  if (String(editForm.elements.id.value) === String(id)) {
+    editForm.reset();
+    editForm.classList.add("hidden");
+  }
+  closeDeleteUserConfirm();
+  toast("Пользователь удален");
+  await loadData();
+}
+
 function setView(viewId) {
   document.querySelectorAll(".view").forEach((view) => view.classList.toggle("active", view.id === viewId));
   document.querySelectorAll(".nav-button").forEach((button) => button.classList.toggle("active", button.dataset.view === viewId));
@@ -365,7 +396,11 @@ function renderUsers() {
           </div>
           <div class="user-actions">
             <button class="secondary-action" data-edit-user="${user.id}" type="button">Изменить</button>
-            ${user.active ? `<button class="danger-action" data-delete-user="${user.id}" type="button">Отключить</button>` : ""}
+            ${
+              String(user.id) === String(state.user.id)
+                ? ""
+                : `<button class="danger-action" data-delete-user="${user.id}" type="button">Удалить</button>`
+            }
           </div>
         </div>
       `,
@@ -382,15 +417,15 @@ function renderUsers() {
       form.elements.password.value = "";
       form.elements.role.value = user.role;
       form.elements.active.checked = Boolean(user.active);
+      byId("deleteUserFromCardButton").classList.toggle("hidden", String(user.id) === String(state.user.id));
       form.classList.remove("hidden");
       form.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   });
   document.querySelectorAll("[data-delete-user]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      await api(`/api/users/${button.dataset.deleteUser}`, { method: "DELETE" });
-      toast("Пользователь отключен");
-      await loadData();
+    button.addEventListener("click", () => {
+      const user = state.users.find((item) => String(item.id) === String(button.dataset.deleteUser));
+      openDeleteUserConfirm(user);
     });
   });
 }
@@ -526,6 +561,23 @@ byId("cancelEditUserButton").addEventListener("click", () => {
   const form = byId("editUserForm");
   form.reset();
   form.classList.add("hidden");
+});
+
+byId("deleteUserFromCardButton").addEventListener("click", () => {
+  openDeleteUserConfirm(selectedUserFromEditForm());
+});
+
+byId("confirmNoButton").addEventListener("click", closeDeleteUserConfirm);
+
+byId("confirmYesButton").addEventListener("click", async () => {
+  const id = byId("confirmDialog").dataset.userId;
+  if (!id) return;
+  try {
+    await deleteUserById(id);
+  } catch (error) {
+    closeDeleteUserConfirm();
+    toast(error.message);
+  }
 });
 
 function bindPasswordToggles() {

@@ -270,6 +270,7 @@
 
             <form id="editUserForm" class="panel data-form hidden">
               <h3>Карточка пользователя</h3>
+              <p class="form-note">Здесь можно изменить имя, логин, роль, пароль или удалить пользователя.</p>
               <input name="id" type="hidden" />
               <label>Имя <input name="name" required /></label>
               <label>Логин <input name="login" required /></label>
@@ -300,6 +301,7 @@
               </label>
               <div class="form-actions compact-actions">
                 <button class="primary-action" type="submit">Сохранить изменения</button>
+                <button class="danger-action" id="deleteUserFromCardButton" type="button">Удалить</button>
                 <button class="secondary-action" id="cancelEditUserButton" type="button">Отмена</button>
               </div>
             </form>
@@ -312,6 +314,16 @@
         </section>
 
         <div id="toast" class="toast"></div>
+        <div id="confirmDialog" class="confirm-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+          <div class="confirm-card">
+            <h3 id="confirmTitle">Подтверждение</h3>
+            <p id="confirmMessage"></p>
+            <div class="confirm-actions">
+              <button class="danger-action" id="confirmYesButton" type="button">Да</button>
+              <button class="secondary-action" id="confirmNoButton" type="button">Нет</button>
+            </div>
+          </div>
+        </div>
       </main>
     </div>
 

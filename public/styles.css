@@ -274,6 +274,11 @@ canvas { display: block; width: 100%; max-width: 100%; height: auto; }
   align-content: start;
   gap: 12px;
 }
+.form-note {
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 14px;
+}
 label {
   display: grid;
   gap: 7px;
@@ -427,6 +432,36 @@ input:focus, select:focus {
   font-weight: 700;
 }
 .toast.visible { display: block; }
+.confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(23, 32, 42, 0.35);
+}
+.confirm-card {
+  width: min(480px, 100%);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 20px;
+  background: white;
+  box-shadow: var(--shadow);
+}
+.confirm-card p {
+  margin-bottom: 18px;
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.35;
+}
+.confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+.confirm-actions button { min-width: 96px; }
 
 @media (max-width: 1180px) {
   .app-shell { grid-template-columns: 1fr; }
