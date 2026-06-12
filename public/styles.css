@@ -140,7 +140,7 @@ p { color: var(--muted); }
 
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
   margin-bottom: 16px;
 }
@@ -321,6 +321,28 @@ input:focus, select:focus {
   color: var(--ink);
   font-size: 13px;
   font-weight: 700;
+}
+.entries-panel { min-height: 360px; }
+.entries-list { display: grid; gap: 10px; }
+.entry-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fafc;
+}
+.entry-row strong { display: block; }
+.entry-row span { color: var(--muted); font-size: 13px; }
+.empty-state {
+  padding: 14px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  background: #f8fafc;
+  font-size: 14px;
 }
 .users-panel { min-height: 360px; }
 .users-list { display: grid; gap: 10px; }

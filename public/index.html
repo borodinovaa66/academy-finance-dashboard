@@ -71,14 +71,9 @@
 
           <section class="kpi-grid">
             <article class="metric-card income">
-              <div class="metric-label">Поступления от клиентов</div>
+              <div class="metric-label">Приходы</div>
               <div id="clientIncome" class="metric-value">0</div>
               <div id="clientPlan" class="metric-meta">план 0</div>
-            </article>
-            <article class="metric-card deposit">
-              <div class="metric-label">% по депозитам</div>
-              <div id="depositIncome" class="metric-value">0</div>
-              <div id="depositPlan" class="metric-meta">план 0</div>
             </article>
             <article class="metric-card expense">
               <div class="metric-label">Расходы</div>
@@ -112,7 +107,7 @@
                 </div>
                 <div class="vessel-stats">
                   <div>
-                    <span>План поступлений</span>
+                    <span>План приходов</span>
                     <strong id="incomePlanTotal">0</strong>
                   </div>
                   <div>
@@ -185,8 +180,8 @@
         <section id="accountingView" class="view">
           <div class="section-heading">
             <div>
-              <h2>Ввод данных, планы и справочники</h2>
-              <p>Раздел для внесения ежедневных показателей, плановых значений и справочников.</p>
+              <h2>Ввод данных и планы</h2>
+              <p>Раздел для внесения ежедневных показателей, плановых значений и корректировок по дням.</p>
             </div>
           </div>
 
@@ -194,10 +189,7 @@
             <form id="entryForm" class="panel data-form">
               <h3>Ежедневные данные</h3>
               <label>Дата <input name="report_date" type="date" required /></label>
-              <label>Банк / источник <input name="bank" list="bankList" required /></label>
-              <datalist id="bankList"></datalist>
-              <label>Поступления от клиентов <input name="client_income" type="text" inputmode="numeric" data-format-number required /></label>
-              <label>% по депозитам <input name="deposit_income" type="text" inputmode="numeric" data-format-number required /></label>
+              <label>Приходы <input name="client_income" type="text" inputmode="numeric" data-format-number required /></label>
               <label>Расходы <input name="expense" type="text" inputmode="numeric" data-format-number required /></label>
               <label>Остаток на счетах <input name="cash_balance" type="text" inputmode="numeric" data-format-number required /></label>
               <label>Комментарий <input name="comment" /></label>
@@ -207,20 +199,16 @@
             <form id="planForm" class="panel data-form">
               <h3>План месяца</h3>
               <label>Месяц <input name="month" type="month" required /></label>
-              <label>Приход денег от клиентов, план <input name="client_income_plan" type="text" inputmode="numeric" data-format-number required /></label>
-              <label>Проценты по депозитам, план <input name="deposit_income_plan" type="text" inputmode="numeric" data-format-number required /></label>
-              <label>Расходы, план <input name="expense_plan" type="text" inputmode="numeric" data-format-number required /></label>
-              <label>Чистый денежный поток, план <input name="net_cash_flow_plan" type="text" inputmode="numeric" data-format-number data-signed-number required /></label>
-              <label>Остаток на счетах, план <input name="cash_balance_plan" type="text" inputmode="numeric" data-format-number required /></label>
+              <label>План приходов <input name="client_income_plan" type="text" inputmode="numeric" data-format-number required /></label>
+              <label>План расходов <input name="expense_plan" type="text" inputmode="numeric" data-format-number required /></label>
+              <label>План чистого денежного потока <input name="net_cash_flow_plan" type="text" inputmode="numeric" data-format-number data-signed-number required /></label>
               <button class="primary-action" type="submit">Сохранить план</button>
             </form>
 
-            <form id="referenceForm" class="panel data-form">
-              <h3>Справочник банков</h3>
-              <label>Новый банк / источник <input name="name" required /></label>
-              <button class="secondary-action" type="submit">Добавить</button>
-              <div id="referencesList" class="chips"></div>
-            </form>
+            <div class="panel entries-panel">
+              <h3>История внесенных дней</h3>
+              <div id="entriesList" class="entries-list"></div>
+            </div>
           </div>
         </section>
 

@@ -57,6 +57,22 @@ function formPayload(form) {
   return payload;
 }
 
+function entryPayload(form) {
+  return {
+    ...formPayload(form),
+    bank: "",
+    deposit_income: "0",
+  };
+}
+
+function planPayload(form) {
+  return {
+    ...formPayload(form),
+    deposit_income_plan: "0",
+    cash_balance_plan: "0",
+  };
+}
+
 function bindFormattedNumberInputs(root = document) {
   root.querySelectorAll("[data-format-number]").forEach((input) => {
     if (input.dataset.boundNumberFormat) return;
@@ -129,10 +145,8 @@ function renderDashboard() {
   const netFlowFactLinePercent = Math.max(0, Math.min(96, netFlowFillPercent));
   const isNetFlowRisk = summary.net_cash_flow_status === "risk";
 
-  byId("clientIncome").textContent = rub(totals.client_income);
-  byId("clientPlan").textContent = `план прихода ${rub(plan.client_income_plan)}`;
-  byId("depositIncome").textContent = rub(totals.deposit_income);
-  byId("depositPlan").textContent = `план процентов ${rub(plan.deposit_income_plan)}`;
+  byId("clientIncome").textContent = rub(summary.total_income);
+  byId("clientPlan").textContent = `план приходов ${rub(plan.client_income_plan)}`;
   byId("expense").textContent = rub(totals.expense);
   byId("expensePlan").textContent = `план расходов ${rub(plan.expense_plan)}`;
   byId("cashBalance").textContent = rub(totals.cash_balance);
@@ -273,26 +287,54 @@ function renderAccountingForms() {
   if (!state.summary) return;
   const plan = state.summary.plan;
   byId("planForm").elements.month.value = state.month;
-  ["client_income_plan", "deposit_income_plan", "expense_plan", "net_cash_flow_plan", "cash_balance_plan"].forEach((key) => {
+  ["client_income_plan", "expense_plan", "net_cash_flow_plan"].forEach((key) => {
     const input = byId("planForm").elements[key];
     input.value = formatInputValue(plan[key] || 0, input.hasAttribute("data-signed-number"));
   });
   const today = new Date().toISOString().slice(0, 10);
   byId("entryForm").elements.report_date.value ||= today;
-  byId("entryForm").elements.bank.value ||= state.references.find((item) => item.group_key === "banks")?.name || "ТБанк";
-  ["client_income", "deposit_income", "expense", "cash_balance"].forEach((key) => {
+  ["client_income", "expense", "cash_balance"].forEach((key) => {
     const input = byId("entryForm").elements[key];
     if (!input.value) input.value = "0";
     input.value = formatInputValue(input.value, input.hasAttribute("data-signed-number"));
   });
-  byId("bankList").innerHTML = state.references
-    .filter((item) => item.group_key === "banks")
-    .map((item) => `<option value="${escapeHtml(item.name)}"></option>`)
+  renderEntriesHistory();
+}
+
+function renderEntriesHistory() {
+  const entries = state.summary?.entries || [];
+  const list = byId("entriesList");
+  if (!entries.length) {
+    list.innerHTML = `<div class="empty-state">За выбранный месяц данные еще не внесены.</div>`;
+    return;
+  }
+  list.innerHTML = entries
+    .map((entry) => {
+      const income = entry.client_income + entry.deposit_income;
+      return `
+        <div class="entry-row">
+          <div>
+            <strong>${escapeHtml(entry.report_date)}</strong>
+            <span>Приходы ${rub(income)} · Расходы ${rub(entry.expense)} · Остаток ${rub(entry.cash_balance)}</span>
+          </div>
+          <button class="secondary-action" data-edit-entry="${escapeHtml(entry.report_date)}" type="button">Изменить</button>
+        </div>
+      `;
+    })
     .join("");
-  byId("referencesList").innerHTML = state.references
-    .filter((item) => item.group_key === "banks")
-    .map((item) => `<span class="chip">${escapeHtml(item.name)}</span>`)
-    .join("");
+  document.querySelectorAll("[data-edit-entry]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const entry = entries.find((item) => item.report_date === button.dataset.editEntry);
+      if (!entry) return;
+      const form = byId("entryForm");
+      form.elements.report_date.value = entry.report_date;
+      form.elements.client_income.value = formatInputValue(entry.client_income + entry.deposit_income);
+      form.elements.expense.value = formatInputValue(entry.expense);
+      form.elements.cash_balance.value = formatInputValue(entry.cash_balance);
+      form.elements.comment.value = entry.comment || "";
+      form.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
 }
 
 function renderUsers() {
@@ -398,7 +440,7 @@ byId("entryForm").addEventListener("submit", async (event) => {
   event.preventDefault();
   await api("/api/entries", {
     method: "POST",
-    body: JSON.stringify(formPayload(event.currentTarget)),
+    body: JSON.stringify(entryPayload(event.currentTarget)),
   });
   toast("Данные дня сохранены");
   await loadData();
@@ -409,22 +451,10 @@ byId("planForm").addEventListener("submit", async (event) => {
   const form = new FormData(event.currentTarget);
   await api("/api/plans", {
     method: "POST",
-    body: JSON.stringify(formPayload(event.currentTarget)),
+    body: JSON.stringify(planPayload(event.currentTarget)),
   });
   state.month = form.get("month");
   toast("План сохранен");
-  await loadData();
-});
-
-byId("referenceForm").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const form = new FormData(event.currentTarget);
-  await api("/api/references", {
-    method: "POST",
-    body: JSON.stringify({ group_key: "banks", name: form.get("name") }),
-  });
-  event.currentTarget.reset();
-  toast("Справочник обновлен");
   await loadData();
 });
 

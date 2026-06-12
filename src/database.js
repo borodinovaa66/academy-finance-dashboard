@@ -176,7 +176,7 @@ function seed(db) {
         month, client_income_plan, deposit_income_plan, expense_plan,
         net_cash_flow_plan, cash_balance_plan, updated_at
       )
-      VALUES (?, 8500000, 300000, 6500000, 2300000, 30000000, ?)
+      VALUES (?, 8500000, 0, 6500000, 2300000, 0, ?)
     `).run(month, nowIso());
   }
 
@@ -322,10 +322,10 @@ function upsertPlan(db, actorId, input) {
   `).run(
     input.month,
     toNumber(input.client_income_plan),
-    toNumber(input.deposit_income_plan),
+    toNumber(input.deposit_income_plan || 0),
     toNumber(input.expense_plan),
     toNumber(input.net_cash_flow_plan),
-    toNumber(input.cash_balance_plan),
+    toNumber(input.cash_balance_plan || 0),
     actorId,
     nowIso(),
   );
@@ -351,9 +351,9 @@ function upsertEntry(db, actorId, input) {
       updated_at = excluded.updated_at
   `).run(
     input.report_date,
-    input.bank,
+    input.bank || "",
     toNumber(input.client_income),
-    toNumber(input.deposit_income),
+    toNumber(input.deposit_income || 0),
     toNumber(input.expense),
     toNumber(input.cash_balance),
     input.comment || "",
@@ -413,7 +413,7 @@ function summarize(db, month) {
   );
   const totalIncome = totals.client_income + totals.deposit_income;
   const netCashFlow = totalIncome - totals.expense;
-  const planIncome = plan.client_income_plan + plan.deposit_income_plan;
+  const planIncome = plan.client_income_plan;
   const date = totals.last_date ? new Date(`${totals.last_date}T00:00:00`) : new Date(`${month}-01T00:00:00`);
   const dayOfMonth = Math.max(1, date.getDate());
   const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
