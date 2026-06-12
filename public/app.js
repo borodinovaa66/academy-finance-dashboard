@@ -98,6 +98,12 @@ function toast(message) {
   window.setTimeout(() => el.classList.remove("visible"), 2600);
 }
 
+function setFormError(id, message = "") {
+  const el = byId(id);
+  if (!el) return;
+  el.textContent = message;
+}
+
 function setView(viewId) {
   document.querySelectorAll(".view").forEach((view) => view.classList.toggle("active", view.id === viewId));
   document.querySelectorAll(".nav-button").forEach((button) => button.classList.toggle("active", button.dataset.view === viewId));
@@ -121,11 +127,13 @@ function availableViews() {
 }
 
 function renderShell() {
+  const currentView = document.querySelector(".view.active")?.id;
+  const views = availableViews();
   byId("roleLabel").textContent = roleLabels[state.user.role];
   byId("userName").textContent = state.user.name;
   byId("monthInput").value = state.month;
   byId("nav").innerHTML = "";
-  availableViews().forEach(([id, label]) => {
+  views.forEach(([id, label]) => {
     const button = document.createElement("button");
     button.className = "nav-button";
     button.type = "button";
@@ -134,7 +142,8 @@ function renderShell() {
     button.addEventListener("click", () => setView(id));
     byId("nav").append(button);
   });
-  setView(availableViews()[0][0]);
+  const nextView = views.some(([id]) => id === currentView) ? currentView : views[0][0];
+  setView(nextView);
 }
 
 function renderDashboard() {
@@ -468,14 +477,26 @@ byId("planForm").addEventListener("submit", async (event) => {
 
 byId("userForm").addEventListener("submit", async (event) => {
   event.preventDefault();
-  const form = new FormData(event.currentTarget);
-  await api("/api/users", {
-    method: "POST",
-    body: JSON.stringify(Object.fromEntries(form.entries())),
-  });
-  event.currentTarget.reset();
-  toast("Пользователь создан");
-  await loadData();
+  const form = event.currentTarget;
+  const formData = new FormData(form);
+  setFormError("userFormError");
+  if (formData.get("password") !== formData.get("password_confirm")) {
+    setFormError("userFormError", "Пароли не совпадают");
+    return;
+  }
+  const payload = Object.fromEntries(formData.entries());
+  delete payload.password_confirm;
+  try {
+    await api("/api/users", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    form.reset();
+    toast("Пользователь создан");
+    await loadData();
+  } catch (error) {
+    setFormError("userFormError", error.message);
+  }
 });
 
 byId("editUserForm").addEventListener("submit", async (event) => {
@@ -507,9 +528,26 @@ byId("cancelEditUserButton").addEventListener("click", () => {
   form.classList.add("hidden");
 });
 
+function bindPasswordToggles() {
+  document.querySelectorAll("[data-toggle-password]").forEach((button) => {
+    if (button.dataset.boundToggle) return;
+    button.dataset.boundToggle = "true";
+    button.addEventListener("click", () => {
+      const form = button.closest("form");
+      const input = form?.elements[button.dataset.togglePassword];
+      if (!input) return;
+      const shouldShow = input.type === "password";
+      input.type = shouldShow ? "text" : "password";
+      button.classList.toggle("active", shouldShow);
+      button.setAttribute("aria-label", shouldShow ? "Скрыть пароль" : "Показать пароль");
+    });
+  });
+}
+
 init().catch((error) => {
   byId("loginError").textContent = error.message;
   byId("loginScreen").classList.remove("hidden");
 });
 
 bindFormattedNumberInputs();
+bindPasswordToggles();

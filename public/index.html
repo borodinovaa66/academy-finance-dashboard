@@ -231,7 +231,30 @@
               <h3>Новый пользователь</h3>
               <label>Имя <input name="name" required /></label>
               <label>Логин <input name="login" required /></label>
-              <label>Пароль <input name="password" type="password" required /></label>
+              <label>
+                Пароль
+                <span class="password-field">
+                  <input name="password" type="password" autocomplete="new-password" required />
+                  <button class="password-toggle" type="button" data-toggle-password="password" aria-label="Показать пароль">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
+                </span>
+              </label>
+              <label>
+                Повторите пароль
+                <span class="password-field">
+                  <input name="password_confirm" type="password" autocomplete="new-password" required />
+                  <button class="password-toggle" type="button" data-toggle-password="password_confirm" aria-label="Показать пароль">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
+                </span>
+              </label>
               <label>
                 Роль
                 <select name="role" required>
@@ -241,6 +264,7 @@
                   <option value="admin">Админ</option>
                 </select>
               </label>
+              <div id="userFormError" class="error-text"></div>
               <button class="primary-action" type="submit">Создать пользователя</button>
             </form>
 
@@ -249,7 +273,18 @@
               <input name="id" type="hidden" />
               <label>Имя <input name="name" required /></label>
               <label>Логин <input name="login" required /></label>
-              <label>Новый пароль <input name="password" type="password" placeholder="Оставьте пустым, если не менять" /></label>
+              <label>
+                Новый пароль
+                <span class="password-field">
+                  <input name="password" type="password" autocomplete="new-password" placeholder="Оставьте пустым, если не менять" />
+                  <button class="password-toggle" type="button" data-toggle-password="password" aria-label="Показать пароль">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
+                </span>
+              </label>
               <label>
                 Роль
                 <select name="role" required>

@@ -303,6 +303,41 @@ input:focus, select:focus {
   border-color: var(--blue);
   outline: 3px solid rgba(35, 100, 170, 0.15);
 }
+.password-field {
+  position: relative;
+  display: block;
+}
+.password-field input { padding-right: 52px; }
+.password-toggle {
+  position: absolute;
+  right: 7px;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.password-toggle:hover,
+.password-toggle:focus {
+  border-color: var(--line);
+  background: #f8fafc;
+  color: var(--ink);
+  outline: none;
+}
+.password-toggle svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 .primary-action, .secondary-action {
   min-height: 42px;
   border-radius: 8px;
