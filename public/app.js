@@ -13,7 +13,6 @@ const roleLabels = {
   viewer: "Доступ к дашборду",
 };
 
-const formatRub = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 0 });
 const byId = (id) => document.getElementById(id);
 const api = async (url, options = {}) => {
   const response = await fetch(url, {
@@ -27,7 +26,48 @@ const api = async (url, options = {}) => {
 };
 
 function rub(value) {
-  return formatRub.format(Number(value || 0));
+  return formatInteger(value);
+}
+
+function normalizeNumber(value) {
+  return String(value || "").replace(/\s+/g, "").replace(/[^\d-]/g, "");
+}
+
+function formatInteger(value) {
+  const normalized = normalizeNumber(value);
+  if (!normalized || normalized === "-") return "0";
+  const sign = normalized.startsWith("-") ? "-" : "";
+  const digits = normalized.replace(/-/g, "").replace(/^0+(?=\d)/, "");
+  return `${sign}${digits || "0"}`.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
+
+function formatInputValue(value, signed = false) {
+  const normalized = normalizeNumber(value);
+  const sign = signed && normalized.startsWith("-") ? "-" : "";
+  const digits = normalized.replace(/-/g, "").replace(/^0+(?=\d)/, "");
+  if (!digits) return sign;
+  return `${sign}${digits}`.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
+
+function formPayload(form) {
+  const payload = Object.fromEntries(new FormData(form).entries());
+  form.querySelectorAll("[data-format-number]").forEach((input) => {
+    payload[input.name] = normalizeNumber(input.value) || "0";
+  });
+  return payload;
+}
+
+function bindFormattedNumberInputs(root = document) {
+  root.querySelectorAll("[data-format-number]").forEach((input) => {
+    if (input.dataset.boundNumberFormat) return;
+    input.dataset.boundNumberFormat = "true";
+    input.addEventListener("input", () => {
+      input.value = formatInputValue(input.value, input.hasAttribute("data-signed-number"));
+    });
+    input.addEventListener("blur", () => {
+      input.value = formatInputValue(input.value, input.hasAttribute("data-signed-number")) || "0";
+    });
+  });
 }
 
 function toast(message) {
@@ -197,11 +237,17 @@ function renderAccountingForms() {
   const plan = state.summary.plan;
   byId("planForm").elements.month.value = state.month;
   ["client_income_plan", "deposit_income_plan", "expense_plan", "net_cash_flow_plan", "cash_balance_plan"].forEach((key) => {
-    byId("planForm").elements[key].value = plan[key] || 0;
+    const input = byId("planForm").elements[key];
+    input.value = formatInputValue(plan[key] || 0, input.hasAttribute("data-signed-number"));
   });
   const today = new Date().toISOString().slice(0, 10);
   byId("entryForm").elements.report_date.value ||= today;
   byId("entryForm").elements.bank.value ||= state.references.find((item) => item.group_key === "banks")?.name || "ТБанк";
+  ["client_income", "deposit_income", "expense", "cash_balance"].forEach((key) => {
+    const input = byId("entryForm").elements[key];
+    if (!input.value) input.value = "0";
+    input.value = formatInputValue(input.value, input.hasAttribute("data-signed-number"));
+  });
   byId("bankList").innerHTML = state.references
     .filter((item) => item.group_key === "banks")
     .map((item) => `<option value="${escapeHtml(item.name)}"></option>`)
@@ -313,10 +359,9 @@ byId("monthInput").addEventListener("change", async (event) => {
 
 byId("entryForm").addEventListener("submit", async (event) => {
   event.preventDefault();
-  const form = new FormData(event.currentTarget);
   await api("/api/entries", {
     method: "POST",
-    body: JSON.stringify(Object.fromEntries(form.entries())),
+    body: JSON.stringify(formPayload(event.currentTarget)),
   });
   toast("Данные дня сохранены");
   await loadData();
@@ -327,7 +372,7 @@ byId("planForm").addEventListener("submit", async (event) => {
   const form = new FormData(event.currentTarget);
   await api("/api/plans", {
     method: "POST",
-    body: JSON.stringify(Object.fromEntries(form.entries())),
+    body: JSON.stringify(formPayload(event.currentTarget)),
   });
   state.month = form.get("month");
   toast("План сохранен");
@@ -391,3 +436,5 @@ init().catch((error) => {
   byId("loginError").textContent = error.message;
   byId("loginScreen").classList.remove("hidden");
 });
+
+bindFormattedNumberInputs();

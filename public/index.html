@@ -196,10 +196,10 @@
               <label>Дата <input name="report_date" type="date" required /></label>
               <label>Банк / источник <input name="bank" list="bankList" required /></label>
               <datalist id="bankList"></datalist>
-              <label>Поступления от клиентов <input name="client_income" type="number" min="0" step="1" required /></label>
-              <label>% по депозитам <input name="deposit_income" type="number" min="0" step="1" required /></label>
-              <label>Расходы <input name="expense" type="number" min="0" step="1" required /></label>
-              <label>Остаток на счетах <input name="cash_balance" type="number" min="0" step="1" required /></label>
+              <label>Поступления от клиентов <input name="client_income" type="text" inputmode="numeric" data-format-number required /></label>
+              <label>% по депозитам <input name="deposit_income" type="text" inputmode="numeric" data-format-number required /></label>
+              <label>Расходы <input name="expense" type="text" inputmode="numeric" data-format-number required /></label>
+              <label>Остаток на счетах <input name="cash_balance" type="text" inputmode="numeric" data-format-number required /></label>
               <label>Комментарий <input name="comment" /></label>
               <button class="primary-action" type="submit">Сохранить день</button>
             </form>
@@ -207,11 +207,11 @@
             <form id="planForm" class="panel data-form">
               <h3>План месяца</h3>
               <label>Месяц <input name="month" type="month" required /></label>
-              <label>Приход денег от клиентов, план <input name="client_income_plan" type="number" min="0" step="1" required /></label>
-              <label>Проценты по депозитам, план <input name="deposit_income_plan" type="number" min="0" step="1" required /></label>
-              <label>Расходы, план <input name="expense_plan" type="number" min="0" step="1" required /></label>
-              <label>Чистый денежный поток, план <input name="net_cash_flow_plan" type="number" step="1" required /></label>
-              <label>Остаток на счетах, план <input name="cash_balance_plan" type="number" min="0" step="1" required /></label>
+              <label>Приход денег от клиентов, план <input name="client_income_plan" type="text" inputmode="numeric" data-format-number required /></label>
+              <label>Проценты по депозитам, план <input name="deposit_income_plan" type="text" inputmode="numeric" data-format-number required /></label>
+              <label>Расходы, план <input name="expense_plan" type="text" inputmode="numeric" data-format-number required /></label>
+              <label>Чистый денежный поток, план <input name="net_cash_flow_plan" type="text" inputmode="numeric" data-format-number data-signed-number required /></label>
+              <label>Остаток на счетах, план <input name="cash_balance_plan" type="text" inputmode="numeric" data-format-number required /></label>
               <button class="primary-action" type="submit">Сохранить план</button>
             </form>
 

@@ -17,7 +17,8 @@ function currentMonth() {
 }
 
 function toNumber(value) {
-  return Number(value || 0);
+  if (typeof value === "number") return value;
+  return Number(String(value || "0").replace(/\s+/g, ""));
 }
 
 function openDatabase() {
