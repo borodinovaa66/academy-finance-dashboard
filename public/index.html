@@ -71,9 +71,14 @@
 
           <section class="kpi-grid">
             <article class="metric-card income">
-              <div class="metric-label">Приходы</div>
+              <div class="metric-label">Приходы всего</div>
               <div id="clientIncome" class="metric-value">0</div>
               <div id="clientPlan" class="metric-meta">план 0</div>
+            </article>
+            <article class="metric-card deposit">
+              <div class="metric-label">Доход по депозитам</div>
+              <div id="depositIncome" class="metric-value">0</div>
+              <div id="depositShare" class="metric-meta">доля 0%</div>
             </article>
             <article class="metric-card expense">
               <div class="metric-label">Расходы</div>
@@ -189,7 +194,8 @@
             <form id="entryForm" class="panel data-form">
               <h3>Ежедневные данные</h3>
               <label>Дата <input name="report_date" type="date" required /></label>
-              <label>Приходы <input name="client_income" type="text" inputmode="numeric" data-format-number required /></label>
+              <label>Приходы от клиентов <input name="client_income" type="text" inputmode="numeric" data-format-number required /></label>
+              <label>Доход по депозитам <input name="deposit_income" type="text" inputmode="numeric" data-format-number required /></label>
               <label>Расходы <input name="expense" type="text" inputmode="numeric" data-format-number required /></label>
               <label>Остаток на счетах <input name="cash_balance" type="text" inputmode="numeric" data-format-number required /></label>
               <label>Комментарий <input name="comment" /></label>

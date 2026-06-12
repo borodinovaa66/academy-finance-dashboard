@@ -49,6 +49,12 @@ function formatInputValue(value, signed = false) {
   return `${sign}${digits}`.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
 
+function percent(value, total) {
+  if (!total) return "0%";
+  const result = (Number(value || 0) / Number(total || 0)) * 100;
+  return `${result.toFixed(1).replace(".", ",")}%`;
+}
+
 function formPayload(form) {
   const payload = Object.fromEntries(new FormData(form).entries());
   form.querySelectorAll("[data-format-number]").forEach((input) => {
@@ -61,7 +67,6 @@ function entryPayload(form) {
   return {
     ...formPayload(form),
     bank: "",
-    deposit_income: "0",
   };
 }
 
@@ -147,6 +152,8 @@ function renderDashboard() {
 
   byId("clientIncome").textContent = rub(summary.total_income);
   byId("clientPlan").textContent = `план приходов ${rub(plan.client_income_plan)}`;
+  byId("depositIncome").textContent = rub(totals.deposit_income);
+  byId("depositShare").textContent = `доля ${percent(totals.deposit_income, summary.total_income)} в приходах`;
   byId("expense").textContent = rub(totals.expense);
   byId("expensePlan").textContent = `план расходов ${rub(plan.expense_plan)}`;
   byId("cashBalance").textContent = rub(totals.cash_balance);
@@ -293,7 +300,7 @@ function renderAccountingForms() {
   });
   const today = new Date().toISOString().slice(0, 10);
   byId("entryForm").elements.report_date.value ||= today;
-  ["client_income", "expense", "cash_balance"].forEach((key) => {
+  ["client_income", "deposit_income", "expense", "cash_balance"].forEach((key) => {
     const input = byId("entryForm").elements[key];
     if (!input.value) input.value = "0";
     input.value = formatInputValue(input.value, input.hasAttribute("data-signed-number"));
@@ -315,7 +322,7 @@ function renderEntriesHistory() {
         <div class="entry-row">
           <div>
             <strong>${escapeHtml(entry.report_date)}</strong>
-            <span>Приходы ${rub(income)} · Расходы ${rub(entry.expense)} · Остаток ${rub(entry.cash_balance)}</span>
+            <span>Приходы ${rub(income)} · депозиты ${rub(entry.deposit_income)} (${percent(entry.deposit_income, income)}) · Расходы ${rub(entry.expense)} · Остаток ${rub(entry.cash_balance)}</span>
           </div>
           <button class="secondary-action" data-edit-entry="${escapeHtml(entry.report_date)}" type="button">Изменить</button>
         </div>
@@ -328,7 +335,8 @@ function renderEntriesHistory() {
       if (!entry) return;
       const form = byId("entryForm");
       form.elements.report_date.value = entry.report_date;
-      form.elements.client_income.value = formatInputValue(entry.client_income + entry.deposit_income);
+      form.elements.client_income.value = formatInputValue(entry.client_income);
+      form.elements.deposit_income.value = formatInputValue(entry.deposit_income);
       form.elements.expense.value = formatInputValue(entry.expense);
       form.elements.cash_balance.value = formatInputValue(entry.cash_balance);
       form.elements.comment.value = entry.comment || "";
