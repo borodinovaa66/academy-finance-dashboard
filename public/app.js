@@ -97,18 +97,24 @@ function refreshPlanNetCashFlow(form) {
   input.value = formatInputValue(calculatePlanNetCashFlow(form), true);
 }
 
-function signedScalePercent(value, maxAbs) {
-  if (!maxAbs) return 50;
-  return 50 + (Number(value || 0) / maxAbs) * 46;
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
 }
 
-function placeNetFlowMarker(id, labelId, label, value, maxAbs) {
-  const marker = byId(id);
-  const percentValue = Math.max(4, Math.min(96, signedScalePercent(value, maxAbs)));
-  marker.style.bottom = `${percentValue}%`;
-  marker.classList.toggle("negative", value < 0);
-  marker.classList.toggle("positive", value >= 0);
-  byId(labelId).textContent = `${label} ${rub(value)}`;
+function setGauge(needleId, arcId, valueId, ratio, options = {}) {
+  const min = options.min ?? 0;
+  const max = options.max ?? 1;
+  const bounded = clamp(ratio, min, max);
+  const progress = max === min ? 0.5 : (bounded - min) / (max - min);
+  const angle = -90 + progress * 180;
+  const arcLength = clamp(progress * 100, 0, 100);
+  const isRisk = Boolean(options.risk);
+  byId(needleId).style.transform = `translateX(-50%) rotate(${angle}deg)`;
+  byId(arcId).style.strokeDasharray = `${arcLength} 100`;
+  byId(arcId).classList.toggle("risk", isRisk);
+  byId(needleId).classList.toggle("risk", isRisk);
+  byId(valueId).textContent = options.label || "";
+  byId(valueId).classList.toggle("risk", isRisk);
 }
 
 function planPayload(form) {
@@ -234,11 +240,9 @@ function renderDashboard() {
   const plan = summary.plan;
   const totals = summary.totals;
   const planIncome = summary.plan_income;
-  const fillPercent = Math.max(0, Math.min(100, summary.progress * 100));
-  const factLinePercent = Math.max(0, Math.min(96, fillPercent));
   const isRisk = summary.forecast_status === "risk";
   const isNetFlowRisk = summary.net_cash_flow_status === "risk";
-  const isNetFlowNegative = summary.net_cash_flow < 0;
+  const isNetFlowNegative = summary.net_cash_flow_forecast < 0;
   const latestEntry = summary.latest_entry;
   const today = todayIso();
   const dailyIncome = latestEntry ? latestEntry.client_income + latestEntry.deposit_income : 0;
@@ -271,11 +275,12 @@ function renderDashboard() {
   byId("incomeFactTotal").textContent = rub(summary.total_income);
   byId("incomeForecast").textContent = rub(summary.income_forecast);
   byId("forecastDelta").textContent = `${summary.forecast_delta >= 0 ? "+" : ""}${rub(summary.forecast_delta)}`;
-  byId("vesselFill").style.height = `${fillPercent}%`;
-  byId("vesselFill").style.background = isRisk
-    ? "linear-gradient(180deg, #e16f6f, #b93737)"
-    : "linear-gradient(180deg, #47b883, #167a55)";
-  byId("factLine").style.bottom = `${factLinePercent}%`;
+  setGauge("incomeGaugeNeedle", "incomeGaugeArc", "incomeGaugeValue", summary.progress, {
+    min: 0,
+    max: 1.2,
+    risk: isRisk,
+    label: `${Math.round(summary.progress * 100)}%`,
+  });
 
   const badge = byId("forecastBadge");
   badge.textContent = isRisk ? "риск недовыполнения" : "прогноз выше плана";
@@ -288,28 +293,13 @@ function renderDashboard() {
   byId("netFlowPlan").textContent = rub(plan.net_cash_flow_plan);
   byId("netFlowForecast").textContent = rub(summary.net_cash_flow_forecast);
   byId("netFlowDelta").textContent = `${summary.net_cash_flow_delta >= 0 ? "+" : ""}${rub(summary.net_cash_flow_delta)}`;
-  const netScaleMax = Math.max(
-    Math.abs(plan.net_cash_flow_plan || 0),
-    Math.abs(summary.net_cash_flow || 0),
-    Math.abs(summary.net_cash_flow_forecast || 0),
-    1,
-  );
-  const factPosition = signedScalePercent(summary.net_cash_flow, netScaleMax);
-  const bar = byId("netFlowBar");
-  bar.classList.toggle("negative", isNetFlowNegative);
-  bar.classList.toggle("positive", !isNetFlowNegative);
-  if (summary.net_cash_flow >= 0) {
-    bar.style.bottom = "50%";
-    bar.style.top = "auto";
-    bar.style.height = `${Math.max(summary.net_cash_flow === 0 ? 0 : 3, factPosition - 50)}%`;
-  } else {
-    bar.style.top = `${100 - 50}%`;
-    bar.style.bottom = "auto";
-    bar.style.height = `${Math.max(3, 50 - factPosition)}%`;
-  }
-  placeNetFlowMarker("netPlanMarker", "netPlanMarkerLabel", "План", plan.net_cash_flow_plan, netScaleMax);
-  placeNetFlowMarker("netFactMarker", "netFactMarkerLabel", "Факт", summary.net_cash_flow, netScaleMax);
-  placeNetFlowMarker("netForecastMarker", "netForecastMarkerLabel", "Прогноз", summary.net_cash_flow_forecast, netScaleMax);
+  const netScaleMax = Math.max(Math.abs(plan.net_cash_flow_plan || 0), Math.abs(summary.net_cash_flow_forecast || 0), 1);
+  setGauge("netGaugeNeedle", "netGaugeArc", "netGaugeValue", summary.net_cash_flow_forecast / netScaleMax, {
+    min: -1,
+    max: 1,
+    risk: isNetFlowRisk || isNetFlowNegative,
+    label: rub(summary.net_cash_flow_forecast),
+  });
   const netBadge = byId("netFlowForecastBadge");
   netBadge.textContent = isNetFlowRisk ? "риск недовыполнения" : "прогноз выше плана";
   netBadge.classList.toggle("risk", isNetFlowRisk);

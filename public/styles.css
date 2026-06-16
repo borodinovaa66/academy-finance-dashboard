@@ -186,14 +186,113 @@ p { color: var(--muted); }
 .panel.wide { grid-column: 1 / -1; }
 .vessel-layout {
   display: grid;
-  grid-template-columns: 170px minmax(0, 1fr);
+  grid-template-columns: 260px minmax(0, 1fr);
   gap: 24px;
   align-items: center;
 }
-.net-flow-layout {
-  grid-template-columns: 300px minmax(0, 1fr);
-}
 .vessel-wrap { display: grid; place-items: center; }
+.gauge-wrap { display: grid; place-items: center; min-height: 168px; }
+.gauge {
+  position: relative;
+  width: 240px;
+  height: 152px;
+  overflow: visible;
+}
+.gauge-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 140px;
+}
+.gauge-track,
+.gauge-value {
+  fill: none;
+  stroke-linecap: round;
+  stroke-width: 16;
+}
+.gauge-track { stroke: #e3ebf2; }
+.signed-track { stroke: #e7edf3; }
+.gauge-value {
+  stroke: #167a55;
+  stroke-dasharray: 0 100;
+  transition: stroke-dasharray 220ms ease, stroke 220ms ease;
+}
+.gauge-value.risk { stroke: #c33a46; }
+.gauge-needle {
+  position: absolute;
+  left: 50%;
+  bottom: 34px;
+  width: 4px;
+  height: 88px;
+  border-radius: 99px;
+  background: #2e3a46;
+  transform: translateX(-50%) rotate(-90deg);
+  transform-origin: 50% 100%;
+  transition: transform 220ms ease, background 220ms ease;
+  z-index: 3;
+}
+.gauge-needle::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -7px;
+  width: 14px;
+  height: 14px;
+  border-left: 4px solid currentColor;
+  border-top: 4px solid currentColor;
+  color: #2e3a46;
+  transform: translateX(-50%) rotate(45deg);
+}
+.gauge-needle.risk,
+.gauge-needle.risk::before {
+  background: #9f2f38;
+  color: #9f2f38;
+}
+.gauge-hub {
+  position: absolute;
+  left: 50%;
+  bottom: 26px;
+  width: 20px;
+  height: 20px;
+  border: 4px solid #2e3a46;
+  border-radius: 50%;
+  background: #fff;
+  transform: translateX(-50%);
+  z-index: 4;
+}
+.gauge-value-label {
+  position: absolute;
+  left: 50%;
+  bottom: 54px;
+  min-width: 86px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: #ecf7f1;
+  color: #167a55;
+  font-size: 18px;
+  font-weight: 900;
+  text-align: center;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+.gauge-value-label.risk {
+  background: #fae6e8;
+  color: #b93737;
+}
+.gauge-scale-label {
+  position: absolute;
+  bottom: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.gauge-scale-label.left { left: 12px; }
+.gauge-scale-label.center {
+  left: 50%;
+  transform: translateX(-50%);
+}
+.gauge-scale-label.right { right: 8px; }
 .vessel {
   position: relative;
   width: 126px;
