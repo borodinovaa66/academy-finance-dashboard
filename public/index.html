@@ -165,12 +165,23 @@
                 <div id="netFlowForecastBadge" class="forecast-badge">прогноз</div>
               </div>
 
-              <div class="vessel-layout">
+              <div class="vessel-layout net-flow-layout">
                 <div class="vessel-wrap">
-                  <div class="vessel net-vessel">
-                    <div id="netVesselFill" class="vessel-fill"></div>
-                    <div class="vessel-line plan-line"><span>План</span></div>
-                    <div id="netFactLine" class="vessel-line fact-line"><span>Факт</span></div>
+                  <div class="net-flow-scale">
+                    <div class="net-flow-axis"></div>
+                    <div id="netPlanMarker" class="net-flow-marker plan-marker">
+                      <span id="netPlanMarkerLabel">План 0</span>
+                    </div>
+                    <div id="netForecastMarker" class="net-flow-marker forecast-marker">
+                      <span id="netForecastMarkerLabel">Прогноз 0</span>
+                    </div>
+                    <div id="netZeroLine" class="net-flow-zero">
+                      <span>0</span>
+                    </div>
+                    <div id="netFlowBar" class="net-flow-bar"></div>
+                    <div id="netFactMarker" class="net-flow-marker fact-marker">
+                      <span id="netFactMarkerLabel">Факт 0</span>
+                    </div>
                   </div>
                 </div>
                 <div class="vessel-stats">
