@@ -117,6 +117,22 @@ function setGauge(needleId, arcId, valueId, ratio, options = {}) {
   byId(valueId).classList.toggle("risk", isRisk);
 }
 
+function placeGaugeMarker(markerId, labelId, ratio, options = {}) {
+  const min = options.min ?? 0;
+  const max = options.max ?? 1;
+  const bounded = clamp(ratio, min, max);
+  const progress = max === min ? 0.5 : (bounded - min) / (max - min);
+  const angle = -90 + progress * 180;
+  const radians = (angle * Math.PI) / 180;
+  const x = 120 + Math.sin(radians) * 96;
+  const y = 118 - Math.cos(radians) * 96;
+  const marker = byId(markerId);
+  marker.style.left = `${x}px`;
+  marker.style.top = `${y}px`;
+  marker.classList.toggle("risk", Boolean(options.risk));
+  byId(labelId).textContent = options.label || "";
+}
+
 function planPayload(form) {
   const payload = formPayload(form);
   payload.net_cash_flow_plan = String(calculatePlanNetCashFlow(form));
@@ -275,11 +291,18 @@ function renderDashboard() {
   byId("incomeFactTotal").textContent = rub(summary.total_income);
   byId("incomeForecast").textContent = rub(summary.income_forecast);
   byId("forecastDelta").textContent = `${summary.forecast_delta >= 0 ? "+" : ""}${rub(summary.forecast_delta)}`;
-  setGauge("incomeGaugeNeedle", "incomeGaugeArc", "incomeGaugeValue", summary.progress, {
+  const incomeGaugeMax = Math.max(planIncome || 0, summary.total_income || 0, 1);
+  setGauge("incomeGaugeNeedle", "incomeGaugeArc", "incomeGaugeValue", summary.total_income / incomeGaugeMax, {
     min: 0,
-    max: 1.2,
+    max: 1,
     risk: isRisk,
-    label: `${Math.round(summary.progress * 100)}%`,
+    label: rub(summary.total_income),
+  });
+  placeGaugeMarker("incomeGaugePlanMarker", "incomeGaugePlanLabel", planIncome / incomeGaugeMax, {
+    min: 0,
+    max: 1,
+    risk: isRisk,
+    label: `План ${rub(planIncome)}`,
   });
 
   const badge = byId("forecastBadge");
@@ -293,12 +316,18 @@ function renderDashboard() {
   byId("netFlowPlan").textContent = rub(plan.net_cash_flow_plan);
   byId("netFlowForecast").textContent = rub(summary.net_cash_flow_forecast);
   byId("netFlowDelta").textContent = `${summary.net_cash_flow_delta >= 0 ? "+" : ""}${rub(summary.net_cash_flow_delta)}`;
-  const netScaleMax = Math.max(Math.abs(plan.net_cash_flow_plan || 0), Math.abs(summary.net_cash_flow_forecast || 0), 1);
-  setGauge("netGaugeNeedle", "netGaugeArc", "netGaugeValue", summary.net_cash_flow_forecast / netScaleMax, {
+  const netScaleMax = Math.max(Math.abs(plan.net_cash_flow_plan || 0), Math.abs(summary.net_cash_flow || 0), 1);
+  setGauge("netGaugeNeedle", "netGaugeArc", "netGaugeValue", summary.net_cash_flow / netScaleMax, {
+    min: -1,
+    max: 1,
+    risk: isNetFlowRisk || summary.net_cash_flow < 0,
+    label: rub(summary.net_cash_flow),
+  });
+  placeGaugeMarker("netGaugePlanMarker", "netGaugePlanLabel", plan.net_cash_flow_plan / netScaleMax, {
     min: -1,
     max: 1,
     risk: isNetFlowRisk || isNetFlowNegative,
-    label: rub(summary.net_cash_flow_forecast),
+    label: `План ${rub(plan.net_cash_flow_plan)}`,
   });
   const netBadge = byId("netFlowForecastBadge");
   netBadge.textContent = isNetFlowRisk ? "риск недовыполнения" : "прогноз выше плана";

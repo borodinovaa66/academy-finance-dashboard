@@ -122,7 +122,7 @@
               <div class="panel-header">
                 <div>
                   <h3>План поступлений</h3>
-                  <p>Сосуд показывает, насколько фактические поступления приблизились к месячному плану.</p>
+                  <p>Стрелка показывает фактические поступления относительно месячного плана.</p>
                 </div>
                 <div id="forecastBadge" class="forecast-badge">прогноз</div>
               </div>
@@ -136,10 +136,11 @@
                     </svg>
                     <div id="incomeGaugeNeedle" class="gauge-needle"></div>
                     <div class="gauge-hub"></div>
-                    <div id="incomeGaugeValue" class="gauge-value-label">0%</div>
+                    <div id="incomeGaugeValue" class="gauge-value-label">0</div>
+                    <div id="incomeGaugePlanMarker" class="gauge-plan-marker">
+                      <span id="incomeGaugePlanLabel">План 0</span>
+                    </div>
                     <div class="gauge-scale-label left">0</div>
-                    <div class="gauge-scale-label center">План</div>
-                    <div class="gauge-scale-label right">120%</div>
                   </div>
                 </div>
                 <div class="vessel-stats">
@@ -182,6 +183,9 @@
                     <div id="netGaugeNeedle" class="gauge-needle"></div>
                     <div class="gauge-hub"></div>
                     <div id="netGaugeValue" class="gauge-value-label">0</div>
+                    <div id="netGaugePlanMarker" class="gauge-plan-marker">
+                      <span id="netGaugePlanLabel">План 0</span>
+                    </div>
                     <div class="gauge-scale-label left">Минус</div>
                     <div class="gauge-scale-label center">0</div>
                     <div class="gauge-scale-label right">Плюс</div>
