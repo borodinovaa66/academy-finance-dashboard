@@ -138,7 +138,15 @@ p { color: var(--muted); }
 .view { display: none; }
 .view.active { display: block; }
 
-.kpi-grid {
+.kpi-section-title {
+  margin: 10px 0 10px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.kpi-grid,
+.daily-kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
@@ -158,6 +166,7 @@ p { color: var(--muted); }
 .metric-card.income { border-top-color: var(--green); }
 .metric-card.deposit { border-top-color: var(--amber); }
 .metric-card.expense { border-top-color: var(--red); }
+.metric-card.daily { border-top-color: var(--blue); }
 .metric-label { min-height: 34px; color: var(--muted); font-size: 14px; font-weight: 700; }
 .metric-value {
   margin-top: 8px;
@@ -304,6 +313,17 @@ input, select {
   background: white;
   color: var(--ink);
 }
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+input[type="password"]::-webkit-credentials-auto-fill-button,
+input[type="password"]::-webkit-caps-lock-indicator,
+input[type="password"]::-webkit-contacts-auto-fill-button {
+  visibility: hidden;
+  display: none !important;
+  pointer-events: none;
+}
 input:focus, select:focus {
   border-color: var(--blue);
   outline: 3px solid rgba(35, 100, 170, 0.15);
@@ -317,6 +337,7 @@ input:focus, select:focus {
   position: absolute;
   right: 7px;
   top: 50%;
+  transform: translateY(-50%);
   display: grid;
   place-items: center;
   width: 34px;
@@ -334,14 +355,24 @@ input:focus, select:focus {
   color: var(--ink);
   outline: none;
 }
-.password-toggle svg {
-  width: 20px;
-  height: 20px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.password-eye {
+  position: relative;
+  display: block;
+  width: 22px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+.password-eye::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  transform: translate(-50%, -50%);
 }
 .primary-action, .secondary-action {
   min-height: 42px;
@@ -468,14 +499,14 @@ input:focus, select:focus {
   .sidebar { flex-direction: row; flex-wrap: wrap; align-items: center; }
   .nav { grid-auto-flow: column; }
   .user-panel { margin-left: auto; margin-top: 0; min-width: 210px; }
-  .kpi-grid, .forms-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi-grid, .daily-kpi-grid, .forms-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .insight-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 760px) {
   .workspace, .sidebar { padding: 18px; }
   .topbar, .section-heading, .panel-header { flex-direction: column; }
   h1 { font-size: 24px; }
-  .kpi-grid, .forms-grid, .vessel-layout, .vessel-stats { grid-template-columns: 1fr; }
+  .kpi-grid, .daily-kpi-grid, .forms-grid, .vessel-layout, .vessel-stats { grid-template-columns: 1fr; }
   .nav { width: 100%; grid-auto-flow: row; }
   .user-panel { width: 100%; }
   .month-picker { width: 100%; }

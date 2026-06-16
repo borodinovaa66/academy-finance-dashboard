@@ -226,9 +226,20 @@ function createUser(db, actorId, input) {
     throw Object.assign(new Error("Заполните логин, имя и пароль"), { statusCode: 400 });
   }
   const login = input.login.trim();
-  const duplicate = db.prepare("SELECT id FROM users WHERE login = ?").get(login);
-  if (duplicate) throw Object.assign(new Error("Такой логин уже занят"), { statusCode: 400 });
+  const duplicate = db.prepare("SELECT id, name, active FROM users WHERE login = ?").get(login);
+  if (duplicate?.active) {
+    throw Object.assign(new Error(`Логин ${login} уже занят пользователем ${duplicate.name}`), { statusCode: 400 });
+  }
   const { salt, hash } = hashPassword(input.password);
+  if (duplicate) {
+    db.prepare(`
+      UPDATE users
+      SET name = ?, role = ?, password_hash = ?, salt = ?, active = 1, updated_at = ?
+      WHERE id = ?
+    `).run(input.name.trim(), input.role, hash, salt, nowIso(), duplicate.id);
+    log(db, actorId, "restore", "user", String(duplicate.id), { login, role: input.role });
+    return duplicate.id;
+  }
   const result = db.prepare(`
     INSERT INTO users (login, name, role, password_hash, salt, active, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, 1, ?, ?)
@@ -248,8 +259,15 @@ function updateUser(db, actorId, id, input) {
   const login = input.login.trim();
   const name = input.name.trim();
   const active = input.active === false || input.active === "false" ? 0 : 1;
-  const duplicate = db.prepare("SELECT id FROM users WHERE login = ? AND id != ?").get(login, id);
-  if (duplicate) throw Object.assign(new Error("Такой логин уже занят"), { statusCode: 400 });
+  const duplicate = db.prepare("SELECT id, name, active FROM users WHERE login = ? AND id != ?").get(login, id);
+  if (duplicate?.active) {
+    throw Object.assign(new Error(`Логин ${login} уже занят пользователем ${duplicate.name}`), { statusCode: 400 });
+  }
+  if (duplicate && !duplicate.active) {
+    throw Object.assign(new Error(`Логин ${login} уже использовался удаленным пользователем. Создайте нового пользователя с этим логином или выберите другой логин.`), {
+      statusCode: 400,
+    });
+  }
 
   if (input.password) {
     const { salt, hash } = hashPassword(input.password);
@@ -333,6 +351,17 @@ function upsertPlan(db, actorId, input) {
 }
 
 function upsertEntry(db, actorId, input) {
+  const previousBalance = db
+    .prepare(
+      `
+        SELECT cash_balance FROM daily_entries
+        WHERE report_date <= ?
+        ORDER BY report_date DESC
+        LIMIT 1
+      `,
+    )
+    .get(input.report_date)?.cash_balance;
+  const cashBalance = input.cash_balance === undefined || input.cash_balance === null || input.cash_balance === "" ? previousBalance || 0 : toNumber(input.cash_balance);
   db.prepare(`
     INSERT INTO daily_entries (
       report_date, bank, client_income, deposit_income, expense,
@@ -355,7 +384,7 @@ function upsertEntry(db, actorId, input) {
     toNumber(input.client_income),
     toNumber(input.deposit_income || 0),
     toNumber(input.expense),
-    toNumber(input.cash_balance),
+    cashBalance,
     input.comment || "",
     input.status || "confirmed",
     actorId,
@@ -399,6 +428,7 @@ function summarize(db, month) {
     cash_balance_plan: 0,
   };
   const entries = listEntries(db, month);
+  const latestEntry = entries[entries.length - 1] || null;
   const totals = entries.reduce(
     (acc, item) => {
       acc.client_income += item.client_income;
@@ -447,6 +477,7 @@ function summarize(db, month) {
     net_cash_flow_progress: netCashFlowProgress,
     days_elapsed: dayOfMonth,
     days_in_month: daysInMonth,
+    latest_entry: latestEntry,
     entries,
   };
 }

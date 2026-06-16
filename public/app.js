@@ -55,6 +55,21 @@ function percent(value, total) {
   return `${result.toFixed(1).replace(".", ",")}%`;
 }
 
+function formatDate(value) {
+  if (!value) return "-";
+  const [year, month, day] = String(value).split("-");
+  if (!year || !month || !day) return String(value);
+  return `${day}.${month}.${year}`;
+}
+
+function todayIso() {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function formPayload(form) {
   const payload = Object.fromEntries(new FormData(form).entries());
   form.querySelectorAll("[data-format-number]").forEach((input) => {
@@ -67,6 +82,7 @@ function entryPayload(form) {
   return {
     ...formPayload(form),
     bank: "",
+    cash_balance: String(state.summary?.totals?.cash_balance || 0),
   };
 }
 
@@ -189,6 +205,24 @@ function renderDashboard() {
   const netFlowFillPercent = Math.max(0, Math.min(100, summary.net_cash_flow_progress * 100));
   const netFlowFactLinePercent = Math.max(0, Math.min(96, netFlowFillPercent));
   const isNetFlowRisk = summary.net_cash_flow_status === "risk";
+  const latestEntry = summary.latest_entry;
+  const today = todayIso();
+  const dailyIncome = latestEntry ? latestEntry.client_income + latestEntry.deposit_income : 0;
+  const dailyDateLabel = latestEntry?.report_date ? formatDate(latestEntry.report_date) : "нет данных";
+  const dailyMeta = latestEntry?.report_date
+    ? latestEntry.report_date === today
+      ? "данные за сегодня"
+      : `последние данные, сегодня ${formatDate(today)}`
+    : `сегодня ${formatDate(today)}`;
+
+  byId("dailyDataDate").textContent = dailyDateLabel;
+  byId("dailyTodayDate").textContent = latestEntry?.report_date ? `сегодня ${formatDate(today)}` : "данные еще не внесены";
+  byId("dailyIncome").textContent = rub(dailyIncome);
+  byId("dailyIncomeMeta").textContent = dailyMeta;
+  byId("dailyDepositIncome").textContent = rub(latestEntry?.deposit_income || 0);
+  byId("dailyDepositShare").textContent = `доля ${percent(latestEntry?.deposit_income || 0, dailyIncome)} в приходах дня`;
+  byId("dailyExpense").textContent = rub(latestEntry?.expense || 0);
+  byId("dailyExpenseMeta").textContent = dailyMeta;
 
   byId("clientIncome").textContent = rub(summary.total_income);
   byId("clientPlan").textContent = `план приходов ${rub(plan.client_income_plan)}`;
@@ -338,9 +372,9 @@ function renderAccountingForms() {
     const input = byId("planForm").elements[key];
     input.value = formatInputValue(plan[key] || 0, input.hasAttribute("data-signed-number"));
   });
-  const today = new Date().toISOString().slice(0, 10);
-  byId("entryForm").elements.report_date.value ||= today;
-  ["client_income", "deposit_income", "expense", "cash_balance"].forEach((key) => {
+  const today = todayIso();
+  byId("entryForm").elements.report_date.value = today;
+  ["client_income", "deposit_income", "expense"].forEach((key) => {
     const input = byId("entryForm").elements[key];
     if (!input.value) input.value = "0";
     input.value = formatInputValue(input.value, input.hasAttribute("data-signed-number"));
@@ -362,7 +396,7 @@ function renderEntriesHistory() {
         <div class="entry-row">
           <div>
             <strong>${escapeHtml(entry.report_date)}</strong>
-            <span>Приходы ${rub(income)} · депозиты ${rub(entry.deposit_income)} (${percent(entry.deposit_income, income)}) · Расходы ${rub(entry.expense)} · Остаток ${rub(entry.cash_balance)}</span>
+            <span>Приходы ${rub(income)} · депозиты ${rub(entry.deposit_income)} (${percent(entry.deposit_income, income)}) · Расходы ${rub(entry.expense)}</span>
           </div>
           <button class="secondary-action" data-edit-entry="${escapeHtml(entry.report_date)}" type="button">Изменить</button>
         </div>
@@ -378,7 +412,6 @@ function renderEntriesHistory() {
       form.elements.client_income.value = formatInputValue(entry.client_income);
       form.elements.deposit_income.value = formatInputValue(entry.deposit_income);
       form.elements.expense.value = formatInputValue(entry.expense);
-      form.elements.cash_balance.value = formatInputValue(entry.cash_balance);
       form.elements.comment.value = entry.comment || "";
       form.scrollIntoView({ behavior: "smooth", block: "start" });
     });
