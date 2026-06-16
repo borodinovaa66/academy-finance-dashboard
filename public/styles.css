@@ -267,17 +267,18 @@ p { color: var(--muted); }
 .gauge-value-label {
   position: absolute;
   left: 50%;
-  bottom: 54px;
-  min-width: 104px;
-  padding: 6px 8px;
+  top: 28px;
+  max-width: 132px;
+  padding: 4px 6px;
   border-radius: 8px;
   background: #ecf7f1;
   color: #167a55;
-  font-size: 18px;
-  font-weight: 900;
+  font-size: 15px;
+  font-weight: 700;
   text-align: center;
   transform: translateX(-50%);
-  z-index: 2;
+  z-index: 6;
+  white-space: nowrap;
 }
 .gauge-value-label.risk {
   background: #fae6e8;
@@ -285,46 +286,37 @@ p { color: var(--muted); }
 }
 .gauge-plan-marker {
   position: absolute;
+  inset: 0;
+  --marker-x: 216px;
+  --marker-y: 118px;
+  z-index: 5;
+}
+.gauge-plan-marker::before {
+  content: "";
+  position: absolute;
+  left: var(--marker-x);
+  top: var(--marker-y);
   width: 14px;
   height: 14px;
   border: 3px solid #17202a;
   border-radius: 50%;
   background: #fff;
   transform: translate(-50%, -50%);
-  z-index: 5;
-}
-.gauge-plan-marker::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: -17px;
-  width: 3px;
-  height: 16px;
-  border-radius: 99px;
-  background: #17202a;
-  transform: translateX(-50%);
 }
 .gauge-plan-marker span {
   position: absolute;
-  left: 50%;
-  top: -42px;
-  min-width: 120px;
-  padding: 3px 6px;
-  border-radius: 6px;
-  background: #fff;
-  color: var(--ink);
+  left: var(--marker-x);
+  bottom: 0;
+  min-width: 92px;
+  color: var(--muted);
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 800;
   text-align: center;
   transform: translateX(-50%);
   white-space: nowrap;
-  box-shadow: 0 0 0 1px #d7e0e8;
-}
-.gauge-plan-marker.risk {
-  border-color: #9f2f38;
 }
 .gauge-plan-marker.risk::before {
-  background: #9f2f38;
+  border-color: #9f2f38;
 }
 .gauge-scale-label {
   position: absolute;

@@ -107,14 +107,18 @@ function setGauge(needleId, arcId, valueId, ratio, options = {}) {
   const bounded = clamp(ratio, min, max);
   const progress = max === min ? 0.5 : (bounded - min) / (max - min);
   const angle = -90 + progress * 180;
+  const radians = (angle * Math.PI) / 180;
   const arcLength = clamp(progress * 100, 0, 100);
   const isRisk = Boolean(options.risk);
   byId(needleId).style.transform = `translateX(-50%) rotate(${angle}deg)`;
   byId(arcId).style.strokeDasharray = `${arcLength} 100`;
   byId(arcId).classList.toggle("risk", isRisk);
   byId(needleId).classList.toggle("risk", isRisk);
-  byId(valueId).textContent = options.label || "";
-  byId(valueId).classList.toggle("risk", isRisk);
+  const valueLabel = byId(valueId);
+  valueLabel.textContent = options.label || "";
+  valueLabel.style.left = `${clamp(120 + Math.sin(radians) * 72, 58, 182)}px`;
+  valueLabel.style.top = "22px";
+  valueLabel.classList.toggle("risk", isRisk);
 }
 
 function placeGaugeMarker(markerId, labelId, ratio, options = {}) {
@@ -127,8 +131,8 @@ function placeGaugeMarker(markerId, labelId, ratio, options = {}) {
   const x = 120 + Math.sin(radians) * 96;
   const y = 118 - Math.cos(radians) * 96;
   const marker = byId(markerId);
-  marker.style.left = `${x}px`;
-  marker.style.top = `${y}px`;
+  marker.style.setProperty("--marker-x", `${x}px`);
+  marker.style.setProperty("--marker-y", `${y}px`);
   marker.classList.toggle("risk", Boolean(options.risk));
   byId(labelId).textContent = options.label || "";
 }
@@ -302,7 +306,7 @@ function renderDashboard() {
     min: 0,
     max: 1,
     risk: isRisk,
-    label: `План ${rub(planIncome)}`,
+    label: rub(planIncome),
   });
 
   const badge = byId("forecastBadge");
@@ -327,7 +331,7 @@ function renderDashboard() {
     min: -1,
     max: 1,
     risk: isNetFlowRisk || isNetFlowNegative,
-    label: `План ${rub(plan.net_cash_flow_plan)}`,
+    label: rub(plan.net_cash_flow_plan),
   });
   const netBadge = byId("netFlowForecastBadge");
   netBadge.textContent = isNetFlowRisk ? "риск недовыполнения" : "прогноз выше плана";
