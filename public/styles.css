@@ -63,9 +63,13 @@ p { color: var(--muted); }
   min-height: 100vh;
 }
 .sidebar {
+  position: sticky;
+  top: 0;
   display: flex;
   flex-direction: column;
   gap: 26px;
+  height: 100vh;
+  overflow-y: auto;
   padding: 24px;
   background: #18212c;
   color: #f7fafc;
@@ -744,7 +748,14 @@ input:focus, select:focus {
 
 @media (max-width: 1180px) {
   .app-shell { grid-template-columns: 1fr; }
-  .sidebar { flex-direction: row; flex-wrap: wrap; align-items: center; }
+  .sidebar {
+    position: static;
+    height: auto;
+    overflow: visible;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
   .nav { grid-auto-flow: column; }
   .user-panel { margin-left: auto; margin-top: 0; min-width: 210px; }
   .kpi-grid, .daily-kpi-grid, .forms-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
