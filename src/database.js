@@ -455,10 +455,12 @@ function summarize(db, month) {
   const netCashFlowDelta = netCashFlowForecast - netCashFlowPlan;
   const netCashFlowProgress =
     netCashFlowPlan > 0
-      ? Math.min(Math.max(netCashFlow / netCashFlowPlan, 0), 1.4)
-      : netCashFlow >= netCashFlowPlan
-        ? 1
-        : 0;
+      ? Math.min(Math.abs(netCashFlow) / netCashFlowPlan, 1.4)
+      : netCashFlowPlan < 0
+        ? Math.min(Math.abs(netCashFlow) / Math.abs(netCashFlowPlan), 1.4)
+        : netCashFlow === 0
+          ? 0
+          : 1;
 
   return {
     month,

@@ -203,8 +203,10 @@ function renderDashboard() {
   const factLinePercent = Math.max(0, Math.min(96, fillPercent));
   const isRisk = summary.forecast_status === "risk";
   const netFlowFillPercent = Math.max(0, Math.min(100, summary.net_cash_flow_progress * 100));
-  const netFlowFactLinePercent = Math.max(0, Math.min(96, netFlowFillPercent));
+  const netFlowFactLinePercent = Math.max(summary.net_cash_flow === 0 ? 0 : 3, Math.min(96, netFlowFillPercent));
   const isNetFlowRisk = summary.net_cash_flow_status === "risk";
+  const isNetFlowNegative = summary.net_cash_flow < 0;
+  const isNetFlowDanger = isNetFlowRisk || isNetFlowNegative;
   const latestEntry = summary.latest_entry;
   const today = todayIso();
   const dailyIncome = latestEntry ? latestEntry.client_income + latestEntry.deposit_income : 0;
@@ -255,10 +257,11 @@ function renderDashboard() {
   byId("netFlowForecast").textContent = rub(summary.net_cash_flow_forecast);
   byId("netFlowDelta").textContent = `${summary.net_cash_flow_delta >= 0 ? "+" : ""}${rub(summary.net_cash_flow_delta)}`;
   byId("netVesselFill").style.height = `${netFlowFillPercent}%`;
-  byId("netVesselFill").style.background = isNetFlowRisk
+  byId("netVesselFill").style.background = isNetFlowDanger
     ? "linear-gradient(180deg, #e16f6f, #b93737)"
     : "linear-gradient(180deg, #47b883, #167a55)";
   byId("netFactLine").style.bottom = `${netFlowFactLinePercent}%`;
+  byId("netFactLine").style.background = isNetFlowDanger ? "#b93737" : "#167a55";
   const netBadge = byId("netFlowForecastBadge");
   netBadge.textContent = isNetFlowRisk ? "риск недовыполнения" : "прогноз выше плана";
   netBadge.classList.toggle("risk", isNetFlowRisk);
