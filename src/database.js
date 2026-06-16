@@ -323,6 +323,9 @@ function getPlan(db, month) {
 }
 
 function upsertPlan(db, actorId, input) {
+  const clientIncomePlan = toNumber(input.client_income_plan);
+  const expensePlan = toNumber(input.expense_plan);
+  const netCashFlowPlan = clientIncomePlan - expensePlan;
   db.prepare(`
     INSERT INTO plans (
       month, client_income_plan, deposit_income_plan, expense_plan,
@@ -339,15 +342,15 @@ function upsertPlan(db, actorId, input) {
       updated_at = excluded.updated_at
   `).run(
     input.month,
-    toNumber(input.client_income_plan),
+    clientIncomePlan,
     toNumber(input.deposit_income_plan || 0),
-    toNumber(input.expense_plan),
-    toNumber(input.net_cash_flow_plan),
+    expensePlan,
+    netCashFlowPlan,
     toNumber(input.cash_balance_plan || 0),
     actorId,
     nowIso(),
   );
-  log(db, actorId, "upsert", "plan", input.month, input);
+  log(db, actorId, "upsert", "plan", input.month, { ...input, net_cash_flow_plan: netCashFlowPlan });
 }
 
 function upsertEntry(db, actorId, input) {
@@ -419,13 +422,17 @@ function addReference(db, actorId, input) {
 }
 
 function summarize(db, month) {
-  const plan = getPlan(db, month) || {
+  const storedPlan = getPlan(db, month) || {
     month,
     client_income_plan: 0,
     deposit_income_plan: 0,
     expense_plan: 0,
     net_cash_flow_plan: 0,
     cash_balance_plan: 0,
+  };
+  const plan = {
+    ...storedPlan,
+    net_cash_flow_plan: storedPlan.client_income_plan - storedPlan.expense_plan,
   };
   const entries = listEntries(db, month);
   const latestEntry = entries[entries.length - 1] || null;

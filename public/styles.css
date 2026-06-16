@@ -313,6 +313,11 @@ input, select {
   background: white;
   color: var(--ink);
 }
+input[readonly] {
+  background: #f3f7fb;
+  color: #334250;
+  cursor: default;
+}
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear {
   display: none;

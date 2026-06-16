@@ -86,9 +86,22 @@ function entryPayload(form) {
   };
 }
 
+function calculatePlanNetCashFlow(form) {
+  const income = Number(normalizeNumber(form.elements.client_income_plan.value) || 0);
+  const expense = Number(normalizeNumber(form.elements.expense_plan.value) || 0);
+  return income - expense;
+}
+
+function refreshPlanNetCashFlow(form) {
+  const input = form.elements.net_cash_flow_plan;
+  input.value = formatInputValue(calculatePlanNetCashFlow(form), true);
+}
+
 function planPayload(form) {
+  const payload = formPayload(form);
+  payload.net_cash_flow_plan = String(calculatePlanNetCashFlow(form));
   return {
-    ...formPayload(form),
+    ...payload,
     deposit_income_plan: "0",
     cash_balance_plan: "0",
   };
@@ -104,6 +117,14 @@ function bindFormattedNumberInputs(root = document) {
     input.addEventListener("blur", () => {
       input.value = formatInputValue(input.value, input.hasAttribute("data-signed-number")) || "0";
     });
+  });
+}
+
+function bindPlanCalculation() {
+  const form = byId("planForm");
+  ["client_income_plan", "expense_plan"].forEach((name) => {
+    form.elements[name].addEventListener("input", () => refreshPlanNetCashFlow(form));
+    form.elements[name].addEventListener("blur", () => refreshPlanNetCashFlow(form));
   });
 }
 
@@ -370,11 +391,13 @@ function drawTrend(entries) {
 function renderAccountingForms() {
   if (!state.summary) return;
   const plan = state.summary.plan;
-  byId("planForm").elements.month.value = state.month;
+  const planForm = byId("planForm");
+  planForm.elements.month.value = state.month;
   ["client_income_plan", "expense_plan", "net_cash_flow_plan"].forEach((key) => {
-    const input = byId("planForm").elements[key];
+    const input = planForm.elements[key];
     input.value = formatInputValue(plan[key] || 0, input.hasAttribute("data-signed-number"));
   });
+  refreshPlanNetCashFlow(planForm);
   const today = todayIso();
   byId("entryForm").elements.report_date.value = today;
   ["client_income", "deposit_income", "expense"].forEach((key) => {
@@ -638,4 +661,5 @@ init().catch((error) => {
 });
 
 bindFormattedNumberInputs();
+bindPlanCalculation();
 bindPasswordToggles();
