@@ -459,8 +459,7 @@ function summarize(db, month) {
   const progress = planIncome > 0 ? Math.min(totalIncome / planIncome, 1.4) : 0;
   const expenseForecastByPace = Math.round((totals.expense / dayOfMonth) * daysInMonth);
   const cappedExpenseForecast = plan.expense_plan > 0 ? Math.min(expenseForecastByPace, plan.expense_plan) : expenseForecastByPace;
-  const incomeForecastForNetCashFlow = planIncome > 0 ? Math.max(incomeForecast, planIncome) : incomeForecast;
-  const netCashFlowForecast = incomeForecastForNetCashFlow - cappedExpenseForecast;
+  const netCashFlowForecast = incomeForecast - cappedExpenseForecast;
   const netCashFlowPlan = plan.net_cash_flow_plan;
   const netCashFlowDelta = netCashFlow - netCashFlowPlan;
   const netCashFlowProgress =
