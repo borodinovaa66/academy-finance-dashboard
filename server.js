@@ -189,17 +189,22 @@ function serveStatic(req, res, url) {
   filePath = path.normalize(filePath).replace(/^(\.\.[/\\])+/, "");
   const fullPath = path.join(PUBLIC_DIR, filePath);
   if (!fullPath.startsWith(PUBLIC_DIR)) return send(res, 403, "Forbidden");
+  const staticHeaders = {
+    "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+    Pragma: "no-cache",
+    Expires: "0",
+  };
 
   fs.readFile(fullPath, (err, content) => {
     if (err) {
       fs.readFile(path.join(PUBLIC_DIR, "index.html"), (indexErr, indexContent) => {
         if (indexErr) return send(res, 404, "Not found");
-        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", ...staticHeaders });
         res.end(indexContent);
       });
       return;
     }
-    res.writeHead(200, { "Content-Type": mimeTypes[path.extname(fullPath)] || "application/octet-stream" });
+    res.writeHead(200, { "Content-Type": mimeTypes[path.extname(fullPath)] || "application/octet-stream", ...staticHeaders });
     res.end(content);
   });
 }
