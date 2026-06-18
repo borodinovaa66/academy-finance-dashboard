@@ -2,3 +2,6 @@ data/
 .env
 *.log
 node_modules/
+ceo-dashboard/secrets/
+ceo-dashboard/.env
+voronka-dashboard/data/

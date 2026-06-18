@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Дашборд вебинарной воронки</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <section id="loginScreen" class="login-screen">
+      <form id="loginForm" class="login-card">
+        <div class="brand-row">
+          <img class="brand-mark" src="/favicon.svg" alt="Воронка запуска" />
+          <div>
+            <h1>Воронка запуска</h1>
+            <p>Вход для руководства, проджекта и администратора.</p>
+          </div>
+        </div>
+        <label>Логин <input name="login" autocomplete="username" required /></label>
+        <label>Пароль <input name="password" type="password" autocomplete="current-password" required /></label>
+        <button class="primary-action" type="submit">Войти</button>
+        <div id="loginError" class="error-text"></div>
+      </form>
+    </section>
+
+    <div id="app" class="app-shell hidden">
+      <aside class="sidebar">
+        <div class="brand-row">
+          <img class="brand-mark" src="/favicon.svg" alt="Воронка запуска" />
+          <div>
+            <div class="brand-title">Воронка запуска</div>
+            <div class="brand-org">Академия менеджмента</div>
+            <div id="roleLabel" class="brand-subtitle">роль</div>
+          </div>
+        </div>
+        <nav id="nav" class="nav"></nav>
+        <div id="launchNav" class="launch-nav"></div>
+        <div class="user-panel">
+          <div id="userName" class="user-name"></div>
+          <button id="logoutButton" class="ghost-action" type="button">Выйти</button>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Сбор аудитории на вебинар</p>
+            <h1 id="launchTitle">Воркшоп</h1>
+            <p id="launchMeta" class="topbar-note"></p>
+          </div>
+          <div id="statusBadge" class="status-badge">активный запуск</div>
+        </header>
+
+        <section id="dashboardView" class="view">
+          <div class="kpi-section-title">
+            <h2 id="dailySectionTitle">За вчера</h2>
+            <span id="yesterdayDateLabel">дата</span>
+          </div>
+          <section class="kpi-grid">
+            <article class="metric-card daily">
+              <div class="metric-label">Посетители посадочных страниц</div>
+              <div id="yesterdayVisits" class="metric-value">0</div>
+              <div id="yesterdayVisitsMeta" class="metric-meta">за день</div>
+              <div id="yesterdayVisitsPlan" class="metric-plan-badge neutral"></div>
+            </article>
+            <article class="metric-card daily">
+              <div class="metric-label">Посадочных в работе</div>
+              <div id="yesterdayLandingCount" class="metric-value">0</div>
+              <div id="yesterdayLandingMeta" class="metric-meta">страниц</div>
+            </article>
+            <article class="metric-card daily">
+              <div class="metric-label">Регистрации</div>
+              <div id="yesterdayRegistrations" class="metric-value">0</div>
+              <div id="yesterdayRegistrationsMeta" class="metric-meta">за день</div>
+              <div id="yesterdayRegistrationsPlan" class="metric-plan-badge neutral"></div>
+            </article>
+            <article class="metric-card daily">
+              <div class="metric-label">Конверсия посадочной страницы</div>
+              <div id="yesterdayConversion" class="metric-value">0%</div>
+              <div id="yesterdayConversionMeta" class="metric-meta">регистрации / посадочная</div>
+            </article>
+          </section>
+
+          <div class="kpi-section-title">
+            <h2>Итого</h2>
+            <span>нарастающим итогом за запуск</span>
+          </div>
+          <section class="kpi-grid">
+            <article class="metric-card primary">
+              <div class="metric-label">Регистрации всего</div>
+              <div id="registrationsNow" class="metric-value">0</div>
+              <div id="registrationsGoal" class="metric-meta">цель 0</div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-label">Прогноз к вебинару</div>
+              <div id="forecastTotal" class="metric-value">0</div>
+              <div id="forecastDelta" class="metric-meta">отклонение 0</div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-label">Конверсия посадочной страницы</div>
+              <div id="conversionRate" class="metric-value">0%</div>
+              <div id="trafficQuality" class="metric-meta">качество трафика</div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-label">Нужно в день</div>
+              <div id="requiredPerDay" class="metric-value">0</div>
+              <div id="pacePerDay" class="metric-meta">текущий темп 0</div>
+            </article>
+          </section>
+
+          <section class="main-grid">
+            <article class="panel progress-panel">
+              <div class="panel-header">
+                <div>
+                  <h2>План регистраций</h2>
+                  <p>Главный экран для руководства: факт, цель, прогноз и риск недобора.</p>
+                </div>
+              </div>
+              <div class="progress-layout">
+                <div class="gauge-wrap">
+                  <div class="gauge">
+                    <svg viewBox="0 0 260 150" aria-hidden="true">
+                      <path class="gauge-track" d="M 30 130 A 100 100 0 0 1 230 130" />
+                      <path class="gauge-zone gauge-zone-risk" d="M 30 130 A 100 100 0 0 1 80 43.4" />
+                      <path class="gauge-zone gauge-zone-watch" d="M 80 43.4 A 100 100 0 0 1 180 43.4" />
+                      <path class="gauge-zone gauge-zone-good" d="M 180 43.4 A 100 100 0 0 1 230 130" />
+                    </svg>
+                    <div id="gaugeNeedle" class="gauge-needle"></div>
+                    <div class="gauge-hub"></div>
+                    <div class="gauge-value">
+                      <span id="gaugeFactValue">0</span>
+                      <small id="gaugeFactCaption">факт</small>
+                    </div>
+                    <div class="gauge-start">0</div>
+                    <div id="gaugePlanValue" class="gauge-end">план 0</div>
+                  </div>
+                </div>
+                <div class="progress-stats">
+                  <div><span>Факт</span><strong id="factStat">0</strong></div>
+                  <div><span>Цель</span><strong id="goalStat">0</strong></div>
+                  <div><span>Прогноз</span><strong id="forecastStat">0</strong></div>
+                  <div><span>Дней прошло</span><strong id="daysStat">0/0</strong></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="panel risk-panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Сейчас важно</h2>
+                  <p>Автоматические выводы по темпу и конверсии.</p>
+                </div>
+              </div>
+              <div id="riskList" class="risk-list"></div>
+            </article>
+
+            <article class="panel wide">
+              <div class="panel-header">
+                <div>
+                  <h2>Итоги вебинара</h2>
+                  <p>Как вебинар сработал как конвертер: участие, заявки, заказы и ключевые конверсии.</p>
+                </div>
+              </div>
+              <div id="webinarResultDashboard" class="webinar-result-grid"></div>
+            </article>
+
+            <article class="panel wide">
+              <div class="panel-header">
+                <div>
+                  <h2>Динамика по дням</h2>
+                  <p>Сводно по всем посадочным: посетители, регистрации и конверсия.</p>
+                </div>
+              </div>
+              <canvas id="trendCanvas" width="1180" height="430"></canvas>
+            </article>
+
+            <article class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Посадочные страницы</h2>
+                  <p>Разбивка по лендингам для разных сегментов и каналов.</p>
+                </div>
+              </div>
+              <div id="landingBreakdown" class="landing-breakdown"></div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Контент и каналы</h2>
+                  <p>Публикации за отчетный день и нарастающим итогом за запуск.</p>
+                </div>
+              </div>
+              <div id="channelList" class="channel-list"></div>
+            </article>
+          </section>
+        </section>
+
+        <section id="inputView" class="view">
+          <div class="forms-grid">
+            <form id="launchForm" class="panel data-form">
+              <h2>Параметры запуска</h2>
+              <input name="id" type="hidden" />
+              <label>Название <input name="title" required /></label>
+              <label>Продукт <select name="product_id" required></select></label>
+              <label>Поток <select name="stream_id" required></select></label>
+              <label>Дата вебинара <input name="webinar_date" type="date" required /></label>
+              <label>Начало сбора <input name="start_date" type="date" required /></label>
+              <label>Конец сбора <input name="end_date" type="date" required /></label>
+              <label>Цель регистраций <input name="registration_goal" type="text" inputmode="numeric" data-format-number required /></label>
+              <label>Цель посетителей посадочных <input name="visitor_goal" type="text" inputmode="numeric" data-format-number required /></label>
+              <div class="landing-config">
+                <div class="landing-config-header">
+                  <strong>Посадочные страницы</strong>
+                  <button id="addLandingPageButton" class="secondary-action compact-button" type="button">Добавить</button>
+                </div>
+                <div id="landingPagesConfig" class="landing-pages-config"></div>
+              </div>
+              <div class="form-actions">
+                <button class="primary-action" type="submit">Сохранить запуск</button>
+                <button id="newLaunchButton" class="secondary-action" type="button">Новый вебинар</button>
+              </div>
+            </form>
+
+            <form id="reportForm" class="panel data-form">
+              <h2>Данные за вчера</h2>
+              <datalist id="contentChannelOptions">
+                <option value="Instagram"></option>
+                <option value="Telegram"></option>
+                <option value="Email"></option>
+                <option value="ТГ бот"></option>
+                <option value="VK-бот"></option>
+                <option value="Сейл-бот"></option>
+                <option value="VK"></option>
+                <option value="YouTube"></option>
+                <option value="Rutube"></option>
+                <option value="Dzen"></option>
+              </datalist>
+              <label>Дата <input name="report_date" type="date" required /></label>
+              <div id="landingReportInputs" class="landing-report-inputs"></div>
+              <div class="content-publications">
+                <div class="content-publications-header">
+                  <strong>Опубликованный контент</strong>
+                  <button id="addContentChannelButton" class="secondary-action compact-button" type="button">Добавить канал</button>
+                </div>
+                <div id="contentPublicationInputs" class="content-publication-inputs"></div>
+              </div>
+              <label>Комментарий <textarea name="notes" rows="3"></textarea></label>
+              <div id="reportFormError" class="error-text"></div>
+              <button class="primary-action" type="submit">Сохранить день</button>
+            </form>
+
+            <div class="panel report-history">
+              <h2>История по дням</h2>
+              <div id="reportsList" class="reports-list"></div>
+            </div>
+
+            <form id="webinarResultForm" class="panel data-form">
+              <h2>Итоги вебинара</h2>
+              <p>Заполняются после вебинара. Конверсии считаются автоматически.</p>
+              <div class="webinar-result-form-grid">
+                <label>План регистраций <input name="registration_plan" type="text" inputmode="numeric" data-format-number /></label>
+                <label>Факт регистраций <input name="registrations" type="text" inputmode="numeric" data-format-number /></label>
+                <label>План уникальных регистраций <input name="unique_registration_plan" type="text" inputmode="numeric" data-format-number /></label>
+                <label>Факт уникальных регистраций <input name="unique_registrations" type="text" inputmode="numeric" data-format-number /></label>
+                <label>План посетителей <input name="visitor_plan" type="text" inputmode="numeric" data-format-number /></label>
+                <label>Факт посетителей <input name="visitors" type="text" inputmode="numeric" data-format-number /></label>
+                <label>Квалифицированные лиды <input name="qualified_leads" type="text" inputmode="numeric" data-format-number /></label>
+                <label>Уникальные участники <input name="unique_participants" type="text" inputmode="numeric" data-format-number /></label>
+                <label>Участники в пике <input name="peak_participants" type="text" inputmode="numeric" data-format-number /></label>
+                <label>Более 30 минут <input name="over_30m_participants" type="text" inputmode="numeric" data-format-number /></label>
+                <label>План заявок на консультацию <input name="consultation_request_plan" type="text" inputmode="numeric" data-format-number /></label>
+                <label>Факт заявок на консультацию <input name="consultation_requests" type="text" inputmode="numeric" data-format-number /></label>
+                <label>План заказов <input name="order_plan" type="text" inputmode="numeric" data-format-number /></label>
+                <label>Факт заказов <input name="orders" type="text" inputmode="numeric" data-format-number /></label>
+                <label>Неоплаченные заказы <input name="unpaid_orders" type="text" inputmode="numeric" data-format-number /></label>
+                <label>Нажали предоплату <input name="prepay_clicks" type="text" inputmode="numeric" data-format-number /></label>
+                <label>План лидов <input name="lead_plan" type="text" inputmode="numeric" data-format-number /></label>
+                <label>Факт лидов <input name="leads" type="text" inputmode="numeric" data-format-number /></label>
+                <label>План оплат заявок <input name="paid_consultation_plan" type="text" inputmode="numeric" data-format-number /></label>
+                <label>Факт оплат заявок <input name="paid_consultations" type="text" inputmode="numeric" data-format-number /></label>
+                <label>План оплат заказов <input name="paid_order_plan" type="text" inputmode="numeric" data-format-number /></label>
+                <label>Факт оплат заказов <input name="paid_orders" type="text" inputmode="numeric" data-format-number /></label>
+                <label>План оплат лидов <input name="paid_lead_plan" type="text" inputmode="numeric" data-format-number /></label>
+                <label>Факт оплат лидов <input name="paid_leads" type="text" inputmode="numeric" data-format-number /></label>
+                <label>План оплат всего <input name="total_payment_plan" type="text" inputmode="numeric" data-format-number /></label>
+                <label>Факт оплат всего <input name="total_payments" type="text" inputmode="numeric" data-format-number /></label>
+                <label>План среднего чека <input name="average_check_plan" type="text" inputmode="numeric" data-format-number /></label>
+                <label>Факт среднего чека <input name="average_check" type="text" inputmode="numeric" data-format-number /></label>
+                <label>План суммы заказов <input name="total_order_amount_plan" type="text" inputmode="numeric" data-format-number /></label>
+                <label>Факт суммы заказов <input name="total_order_amount" type="text" inputmode="numeric" data-format-number /></label>
+              </div>
+              <div id="webinarResultFormError" class="error-text"></div>
+              <button class="primary-action" type="submit">Сохранить итоги вебинара</button>
+            </form>
+          </div>
+        </section>
+
+        <section id="referencesView" class="view">
+          <div class="section-heading">
+            <div>
+              <h2>Справочники</h2>
+              <p>Продукты и потоки, которые менеджер выбирает в карточке вебинара.</p>
+            </div>
+          </div>
+          <div class="references-grid">
+            <form id="productForm" class="panel data-form">
+              <h2>Продукты</h2>
+              <label>Новый продукт <input name="name" placeholder="Например, Mini MBA" required /></label>
+              <div id="productFormError" class="error-text"></div>
+              <button class="secondary-action" type="submit">Добавить продукт</button>
+              <div class="reference-current">
+                <strong>Уже в справочнике</strong>
+                <div id="productsReferenceList" class="reference-list"></div>
+              </div>
+            </form>
+            <form id="streamForm" class="panel data-form">
+              <h2>Потоки</h2>
+              <label>Новый поток <input name="name" placeholder="Например, Поток 12" required /></label>
+              <div id="streamFormError" class="error-text"></div>
+              <button class="secondary-action" type="submit">Добавить поток</button>
+              <div class="reference-current">
+                <strong>Уже в справочнике</strong>
+                <div id="streamsReferenceList" class="reference-list"></div>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <section id="archiveView" class="view">
+          <div class="section-heading">
+            <div>
+              <h2>Архив вебинаров</h2>
+              <p>Прошедшие вебинары закрыты для изменений. Здесь можно открыть итоговый дашборд.</p>
+            </div>
+          </div>
+          <div class="archive-filters panel">
+            <label>Год <select id="archiveYearFilter"></select></label>
+            <label>Месяц <select id="archiveMonthFilter"></select></label>
+            <label>Продукт <select id="archiveProductFilter"></select></label>
+            <label>Поток <select id="archiveStreamFilter"></select></label>
+          </div>
+          <div id="archiveList" class="archive-list"></div>
+        </section>
+
+        <section id="usersView" class="view">
+          <div class="forms-grid">
+            <form id="userForm" class="panel data-form">
+              <h2>Новый пользователь</h2>
+              <label>Имя <input name="name" required /></label>
+              <label>Логин <input name="login" required /></label>
+              <label>Пароль <input name="password" type="password" autocomplete="new-password" required /></label>
+              <label>
+                Роль
+                <select name="role" required>
+                  <option value="viewer">Только дашборд</option>
+                  <option value="owner">Руководитель</option>
+                  <option value="project">Проджект</option>
+                  <option value="admin">Админ</option>
+                </select>
+              </label>
+              <div id="userFormError" class="error-text"></div>
+              <button class="primary-action" type="submit">Создать</button>
+            </form>
+            <div class="panel users-panel">
+              <h2>Пользователи</h2>
+              <div id="usersList" class="users-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <div id="toast" class="toast"></div>
+      </main>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

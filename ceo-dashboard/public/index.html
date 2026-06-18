@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Рука на Пульсе</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand-row">
+          <div class="brand-mark">РнП</div>
+          <div>
+            <div class="brand-title">Рука на Пульсе</div>
+            <div class="brand-org">Академия менеджмента</div>
+            <div class="brand-subtitle">РнП дашборд</div>
+          </div>
+        </div>
+        <nav class="nav">
+          <button class="nav-button active" type="button">Дашборд</button>
+        </nav>
+        <div class="source-panel">
+          <strong>Источник</strong>
+          <span id="sourceLabel">Google Sheets</span>
+          <button id="refreshButton" class="ghost-action" type="button">Обновить данные</button>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">План-факт онлайн-школы</p>
+            <h1>Рука на Пульсе</h1>
+            <p id="periodLabel" class="topbar-note">Период загружается</p>
+          </div>
+          <div id="overallStatus" class="status-badge">загрузка</div>
+        </header>
+
+        <section id="errorPanel" class="setup-panel hidden"></section>
+
+        <section id="dashboard" class="hidden">
+          <div class="kpi-section-title">
+            <h2>Главные показатели</h2>
+            <span id="updatedAt">обновление</span>
+          </div>
+          <section id="topKpiGrid" class="kpi-grid"></section>
+
+          <section class="visual-grid">
+            <article class="panel progress-panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Темп месяца</h2>
+                  <p id="gaugeCaption">Выполнение главного денежного плана.</p>
+                </div>
+              </div>
+              <div class="gauge-layout">
+                <div class="gauge" aria-label="Выполнение плана">
+                  <svg viewBox="0 0 240 135" role="img" aria-hidden="true">
+                    <path class="gauge-track" d="M 30 115 A 90 90 0 0 1 210 115" />
+                    <path class="gauge-zone gauge-zone-risk" d="M 30 115 A 90 90 0 0 1 81 40" />
+                    <path class="gauge-zone gauge-zone-watch" d="M 81 40 A 90 90 0 0 1 159 40" />
+                    <path class="gauge-zone gauge-zone-good" d="M 159 40 A 90 90 0 0 1 210 115" />
+                  </svg>
+                  <div id="gaugeNeedle" class="gauge-needle"></div>
+                  <div class="gauge-hub"></div>
+                  <div class="gauge-value">
+                    <span id="gaugeValue">0%</span>
+                    <small id="gaugeMeta">нет данных</small>
+                  </div>
+                  <div class="gauge-start">0%</div>
+                  <div class="gauge-end">100%</div>
+                </div>
+              </div>
+            </article>
+
+            <article class="panel chart-panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Выполнение ключевых KPI</h2>
+                  <p>Процент выполнения за текущий календарный месяц. Целевая граница: 95%.</p>
+                </div>
+              </div>
+              <canvas id="planFactCanvas" width="1120" height="360"></canvas>
+            </article>
+          </section>
+
+          <section class="main-grid">
+            <article class="panel wide">
+              <div class="panel-header">
+                <div>
+                  <h2>План / факт / отклонения</h2>
+                  <p>Красные зоны требуют комментария: причина, риск, действие, ответственный и срок.</p>
+                </div>
+              </div>
+              <div id="kpiTable" class="metric-table"></div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Продукт и сервис</h2>
+                  <p>Качество, производство, сервисные риски и красная зона учеников.</p>
+                </div>
+              </div>
+              <div id="productList" class="compact-list"></div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Решения недели</h2>
+                  <p>3-5 управленческих пунктов, которые нужно вынести на планерку.</p>
+                </div>
+              </div>
+              <div id="actionsList" class="action-list"></div>
+            </article>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
