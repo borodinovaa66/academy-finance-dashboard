@@ -82,7 +82,6 @@ function entryPayload(form) {
   return {
     ...formPayload(form),
     bank: "",
-    cash_balance: String(state.summary?.totals?.cash_balance || 0),
   };
 }
 
@@ -450,9 +449,9 @@ function renderAccountingForms() {
   refreshPlanNetCashFlow(planForm);
   const today = todayIso();
   byId("entryForm").elements.report_date.value = today;
-  ["client_income", "deposit_income", "expense"].forEach((key) => {
+  ["client_income", "deposit_income", "expense", "cash_balance"].forEach((key) => {
     const input = byId("entryForm").elements[key];
-    if (!input.value) input.value = "0";
+    if (!input.value) input.value = key === "cash_balance" ? String(state.summary.totals.cash_balance || 0) : "0";
     input.value = formatInputValue(input.value, input.hasAttribute("data-signed-number"));
   });
   renderEntriesHistory();
@@ -472,7 +471,7 @@ function renderEntriesHistory() {
         <div class="entry-row">
           <div>
             <strong>${escapeHtml(entry.report_date)}</strong>
-            <span>Приходы ${rub(income)} · депозиты ${rub(entry.deposit_income)} (${percent(entry.deposit_income, income)}) · Расходы ${rub(entry.expense)}</span>
+            <span>Приходы ${rub(income)} · депозиты ${rub(entry.deposit_income)} (${percent(entry.deposit_income, income)}) · Расходы ${rub(entry.expense)} · Остаток ${rub(entry.cash_balance)}</span>
           </div>
           <button class="secondary-action" data-edit-entry="${escapeHtml(entry.report_date)}" type="button">Изменить</button>
         </div>
@@ -488,6 +487,7 @@ function renderEntriesHistory() {
       form.elements.client_income.value = formatInputValue(entry.client_income);
       form.elements.deposit_income.value = formatInputValue(entry.deposit_income);
       form.elements.expense.value = formatInputValue(entry.expense);
+      form.elements.cash_balance.value = formatInputValue(entry.cash_balance);
       form.elements.comment.value = entry.comment || "";
       form.scrollIntoView({ behavior: "smooth", block: "start" });
     });
