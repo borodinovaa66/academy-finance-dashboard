@@ -494,6 +494,14 @@ p { color: var(--muted); }
 }
 .vessel-stats span { display: block; color: var(--muted); font-size: 13px; }
 .vessel-stats strong { display: block; margin-top: 8px; font-size: 20px; }
+.stat-percent {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+}
 .forecast-badge {
   border-radius: 8px;
   padding: 8px 10px;

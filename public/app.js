@@ -292,6 +292,7 @@ function renderDashboard() {
 
   byId("incomePlanTotal").textContent = rub(planIncome);
   byId("incomeFactTotal").textContent = rub(summary.total_income);
+  byId("incomeFactPercent").textContent = `${percent(summary.total_income, planIncome)} от плана`;
   byId("incomeForecast").textContent = rub(summary.income_forecast);
   byId("forecastDelta").textContent = `${summary.forecast_delta >= 0 ? "+" : ""}${rub(summary.forecast_delta)}`;
   const incomeGaugeMax = Math.max(planIncome || 0, summary.total_income || 0, 1);
@@ -317,6 +318,7 @@ function renderDashboard() {
   net.classList.toggle("positive", summary.net_cash_flow >= 0);
   net.classList.toggle("negative", summary.net_cash_flow < 0);
   byId("netFlowPlan").textContent = rub(plan.net_cash_flow_plan);
+  byId("netCashFlowPercent").textContent = `${percent(summary.net_cash_flow, plan.net_cash_flow_plan)} от плана`;
   byId("netFlowForecast").textContent = rub(summary.net_cash_flow_forecast);
   byId("netFlowDelta").textContent = `${summary.net_cash_flow_delta >= 0 ? "+" : ""}${rub(summary.net_cash_flow_delta)}`;
   const netScaleMax = Math.max(Math.abs(plan.net_cash_flow_plan || 0), Math.abs(summary.net_cash_flow || 0), 1);
