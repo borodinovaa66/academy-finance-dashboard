@@ -261,7 +261,7 @@ function renderDashboard() {
   const planIncome = summary.plan_income;
   const isRisk = summary.forecast_status === "risk";
   const isNetFlowRisk = summary.net_cash_flow_status === "risk";
-  const isNetFlowNegative = summary.net_cash_flow_forecast < 0;
+  const isNetFlowNegative = summary.net_cash_flow < 0;
   const latestEntry = summary.latest_entry;
   const today = todayIso();
   const dailyIncome = latestEntry ? latestEntry.client_income + latestEntry.deposit_income : 0;
@@ -323,13 +323,13 @@ function renderDashboard() {
   setGauge("netGaugeNeedle", "netGaugeArc", "netGaugeValue", summary.net_cash_flow / netScaleMax, {
     min: -1,
     max: 1,
-    risk: isNetFlowRisk || summary.net_cash_flow < 0,
+    risk: isNetFlowNegative,
     label: rub(summary.net_cash_flow),
   });
   placeGaugeMarker("netGaugePlanMarker", "netGaugePlanLabel", plan.net_cash_flow_plan / netScaleMax, {
     min: -1,
     max: 1,
-    risk: isNetFlowRisk || isNetFlowNegative,
+    risk: isNetFlowNegative,
     label: rub(plan.net_cash_flow_plan),
   });
   const netBadge = byId("netFlowForecastBadge");
