@@ -150,11 +150,15 @@ p { color: var(--muted); }
   text-transform: uppercase;
 }
 .kpi-grid,
-.daily-kpi-grid {
+.daily-kpi-grid,
+.product-income-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
   margin-bottom: 16px;
+}
+.product-income-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 .metric-card, .panel {
   border: 1px solid var(--line);
@@ -535,6 +539,14 @@ canvas { display: block; width: 100%; max-width: 100%; height: auto; }
   color: var(--muted);
   font-size: 14px;
 }
+.product-entry-block {
+  display: grid;
+  gap: 8px;
+}
+.product-income-inputs {
+  display: grid;
+  gap: 8px;
+}
 label {
   display: grid;
   gap: 7px;
@@ -758,14 +770,14 @@ input:focus, select:focus {
   }
   .nav { grid-auto-flow: column; }
   .user-panel { margin-left: auto; margin-top: 0; min-width: 210px; }
-  .kpi-grid, .daily-kpi-grid, .forms-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi-grid, .daily-kpi-grid, .product-income-grid, .forms-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .insight-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 760px) {
   .workspace, .sidebar { padding: 18px; }
   .topbar, .section-heading, .panel-header { flex-direction: column; }
   h1 { font-size: 24px; }
-  .kpi-grid, .daily-kpi-grid, .forms-grid, .vessel-layout, .vessel-stats { grid-template-columns: 1fr; }
+  .kpi-grid, .daily-kpi-grid, .product-income-grid, .forms-grid, .vessel-layout, .vessel-stats { grid-template-columns: 1fr; }
   .nav { width: 100%; grid-auto-flow: row; }
   .user-panel { width: 100%; }
   .month-picker { width: 100%; }

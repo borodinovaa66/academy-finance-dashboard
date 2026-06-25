@@ -55,6 +55,10 @@ function percent(value, total) {
   return `${result.toFixed(1).replace(".", ",")}%`;
 }
 
+function productReferences() {
+  return state.references.filter((item) => item.group_key === "products");
+}
+
 function formatDate(value) {
   if (!value) return "-";
   const [year, month, day] = String(value).split("-");
@@ -79,9 +83,14 @@ function formPayload(form) {
 }
 
 function entryPayload(form) {
+  const payload = formPayload(form);
   return {
-    ...formPayload(form),
+    ...payload,
     bank: "",
+    product_incomes: productReferences().map((product) => ({
+      product_id: product.id,
+      amount: payload[`product_income_${product.id}`] || "0",
+    })),
   };
 }
 
@@ -289,6 +298,7 @@ function renderDashboard() {
   byId("expensePlan").textContent = `план расходов ${rub(plan.expense_plan)}`;
   byId("cashBalance").textContent = rub(totals.cash_balance);
   byId("balanceDate").textContent = totals.last_date ? `на ${totals.last_date}` : "нет данных";
+  renderProductIncomeDashboard();
 
   byId("incomePlanTotal").textContent = rub(planIncome);
   byId("incomeFactTotal").textContent = rub(summary.total_income);
@@ -343,6 +353,27 @@ function renderDashboard() {
       : "При текущем темпе чистый денежный поток не дотягивает до плана.";
 
   drawTrend(summary.entries);
+}
+
+function renderProductIncomeDashboard() {
+  const items = state.summary?.product_totals || [];
+  const grid = byId("productIncomeGrid");
+  if (!items.length) {
+    grid.innerHTML = `<article class="metric-card"><div class="metric-label">Продукты</div><div class="metric-meta">Добавьте продукты в справочник, чтобы видеть разбивку поступлений.</div></article>`;
+    return;
+  }
+  grid.innerHTML = items
+    .filter((item) => item.amount > 0 || item.product_id)
+    .map(
+      (item) => `
+        <article class="metric-card income">
+          <div class="metric-label">${escapeHtml(item.product_name)}</div>
+          <div class="metric-value">${rub(item.amount)}</div>
+          <div class="metric-meta">${percent(item.amount, state.summary.totals.client_income)} от приходов от клиентов</div>
+        </article>
+      `,
+    )
+    .join("");
 }
 
 function drawTrend(entries) {
@@ -456,7 +487,39 @@ function renderAccountingForms() {
     if (!input.value) input.value = key === "cash_balance" ? String(state.summary.totals.cash_balance || 0) : "0";
     input.value = formatInputValue(input.value, input.hasAttribute("data-signed-number"));
   });
+  renderProductIncomeInputs();
   renderEntriesHistory();
+  renderProductsList();
+}
+
+function renderProductIncomeInputs(values = new Map()) {
+  const products = productReferences();
+  const container = byId("productIncomeInputs");
+  if (!products.length) {
+    container.innerHTML = `<div class="empty-state">Продукты еще не добавлены.</div>`;
+    return;
+  }
+  container.innerHTML = products
+    .map((product) => {
+      const value = values.get(Number(product.id)) || 0;
+      return `
+        <label>${escapeHtml(product.name)}
+          <input name="product_income_${product.id}" type="text" inputmode="numeric" data-format-number value="${formatInputValue(value)}" />
+        </label>
+      `;
+    })
+    .join("");
+  bindFormattedNumberInputs(container);
+}
+
+function renderProductsList() {
+  const products = productReferences();
+  const list = byId("productsList");
+  if (!products.length) {
+    list.innerHTML = `<div class="empty-state">Продукты еще не добавлены.</div>`;
+    return;
+  }
+  list.innerHTML = products.map((product) => `<span class="chip">${escapeHtml(product.name)}</span>`).join("");
 }
 
 function renderEntriesHistory() {
@@ -490,6 +553,7 @@ function renderEntriesHistory() {
       form.elements.deposit_income.value = formatInputValue(entry.deposit_income);
       form.elements.expense.value = formatInputValue(entry.expense);
       form.elements.cash_balance.value = formatInputValue(entry.cash_balance);
+      renderProductIncomeInputs(new Map((entry.product_incomes || []).map((item) => [Number(item.product_id), item.amount])));
       form.elements.comment.value = entry.comment || "";
       form.scrollIntoView({ behavior: "smooth", block: "start" });
     });
@@ -618,6 +682,19 @@ byId("planForm").addEventListener("submit", async (event) => {
   });
   state.month = form.get("month");
   toast("План сохранен");
+  await loadData();
+});
+
+byId("productForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const formData = new FormData(form);
+  await api("/api/references", {
+    method: "POST",
+    body: JSON.stringify({ group_key: "products", name: formData.get("name") }),
+  });
+  form.reset();
+  toast("Продукт добавлен");
   await loadData();
 });
 

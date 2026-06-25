@@ -88,6 +88,15 @@ function migrate(db) {
       UNIQUE(group_key, name)
     );
 
+    CREATE TABLE IF NOT EXISTS product_income_entries (
+      report_date TEXT NOT NULL,
+      product_id INTEGER NOT NULL REFERENCES reference_items(id),
+      amount INTEGER NOT NULL DEFAULT 0,
+      updated_by INTEGER REFERENCES users(id),
+      updated_at TEXT NOT NULL,
+      PRIMARY KEY (report_date, product_id)
+    );
+
     CREATE TABLE IF NOT EXISTS audit_log (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER REFERENCES users(id),
@@ -394,15 +403,67 @@ function upsertEntry(db, actorId, input) {
     nowIso(),
     nowIso(),
   );
+  const productIncomes = Array.isArray(input.product_incomes) ? input.product_incomes : [];
+  db.prepare("DELETE FROM product_income_entries WHERE report_date = ?").run(input.report_date);
+  const insertProductIncome = db.prepare(`
+    INSERT INTO product_income_entries (report_date, product_id, amount, updated_by, updated_at)
+    VALUES (?, ?, ?, ?, ?)
+  `);
+  productIncomes.forEach((item) => {
+    const productId = Number(item.product_id || item.productId || 0);
+    const amount = toNumber(item.amount);
+    if (!productId || amount <= 0) return;
+    insertProductIncome.run(input.report_date, productId, amount, actorId, nowIso());
+  });
   log(db, actorId, "upsert", "daily_entry", input.report_date, input);
 }
 
 function listEntries(db, month) {
-  return db.prepare(`
+  const entries = db.prepare(`
     SELECT * FROM daily_entries
     WHERE substr(report_date, 1, 7) = ?
     ORDER BY report_date ASC
   `).all(month);
+  const productRows = db.prepare(`
+    SELECT pie.report_date, pie.product_id, pie.amount, ri.name AS product_name
+    FROM product_income_entries pie
+    JOIN reference_items ri ON ri.id = pie.product_id
+    WHERE substr(pie.report_date, 1, 7) = ?
+    ORDER BY ri.name
+  `).all(month);
+  const byDate = new Map();
+  productRows.forEach((row) => {
+    if (!byDate.has(row.report_date)) byDate.set(row.report_date, []);
+    byDate.get(row.report_date).push(row);
+  });
+  return entries.map((entry) => ({ ...entry, product_incomes: byDate.get(entry.report_date) || [] }));
+}
+
+function productIncomeTotals(db, month, clientIncomeTotal) {
+  const products = db
+    .prepare("SELECT id, name FROM reference_items WHERE group_key = 'products' AND active = 1 ORDER BY name")
+    .all();
+  const rows = db.prepare(`
+    SELECT product_id, SUM(amount) AS amount
+    FROM product_income_entries
+    WHERE substr(report_date, 1, 7) = ?
+    GROUP BY product_id
+  `).all(month);
+  const amountByProduct = new Map(rows.map((row) => [row.product_id, row.amount || 0]));
+  const items = products.map((product) => ({
+    product_id: product.id,
+    product_name: product.name,
+    amount: amountByProduct.get(product.id) || 0,
+  }));
+  const distributed = items.reduce((sum, item) => sum + item.amount, 0);
+  if (clientIncomeTotal > distributed) {
+    items.push({
+      product_id: null,
+      product_name: "Не распределено",
+      amount: clientIncomeTotal - distributed,
+    });
+  }
+  return items;
 }
 
 function listReferences(db) {
@@ -449,6 +510,7 @@ function summarize(db, month) {
     { client_income: 0, deposit_income: 0, expense: 0, cash_balance: 0, last_date: null, bank: "" },
   );
   const totalIncome = totals.client_income + totals.deposit_income;
+  const productTotals = productIncomeTotals(db, month, totals.client_income);
   const netCashFlow = totalIncome - totals.expense;
   const planIncome = plan.client_income_plan;
   const date = totals.last_date ? new Date(`${totals.last_date}T00:00:00`) : new Date(`${month}-01T00:00:00`);
@@ -490,6 +552,7 @@ function summarize(db, month) {
     days_in_month: daysInMonth,
     latest_entry: latestEntry,
     entries,
+    product_totals: productTotals,
   };
 }
 
