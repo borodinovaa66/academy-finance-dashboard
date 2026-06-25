@@ -10,6 +10,7 @@ const {
   sessionCookie,
   verifyPassword,
 } = require("./src/auth");
+const { sendDailySummaryToBitrix } = require("./src/bitrix");
 const {
   addReference,
   createSession,
@@ -171,8 +172,21 @@ async function handleApi(req, res, url) {
 
   if (req.method === "POST" && url.pathname === "/api/entries") {
     requireRole(user, ["accountant", "admin"]);
-    upsertEntry(db, user.id, await parseBody(req));
+    const body = await parseBody(req);
+    upsertEntry(db, user.id, body);
+    const month = String(body.report_date || "").slice(0, 7) || new Date().toISOString().slice(0, 7);
+    const summary = summarize(db, month);
+    sendDailySummaryToBitrix(summary).catch((error) => {
+      console.error(error.message);
+    });
     return sendJson(res, 200, { ok: true });
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/integrations/bitrix/test") {
+    requireRole(user, ["accountant", "admin"]);
+    const month = url.searchParams.get("month") || new Date().toISOString().slice(0, 7);
+    const result = await sendDailySummaryToBitrix(summarize(db, month));
+    return sendJson(res, 200, { ok: true, result });
   }
 
   if (req.method === "POST" && url.pathname === "/api/references") {

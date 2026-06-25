@@ -107,6 +107,29 @@ ADMIN_NAME=Администратор
 ACCOUNTANT_LOGIN=...
 ACCOUNTANT_PASSWORD=...
 ACCOUNTANT_NAME=Бухгалтер
+BITRIX_WEBHOOK_URL=https://your-domain.bitrix24.ru/rest/USER_ID/WEBHOOK_CODE/
+BITRIX_DIALOG_ID=chat123
+BITRIX_BOT_ID=
+BITRIX_CLIENT_ID=
+BITRIX_SYSTEM_MESSAGE=N
+```
+
+## Bitrix24
+
+После сохранения ежедневных данных приложение может отправлять короткую сводку в групповой чат Bitrix24.
+
+Нужны параметры:
+
+- `BITRIX_WEBHOOK_URL` — входящий webhook Bitrix24 с доступом к методу `imbot.message.add`.
+- `BITRIX_DIALOG_ID` — идентификатор группового чата в формате `chat123`.
+- `BITRIX_BOT_ID` — опционально, если сообщение отправляется от конкретного чат-бота.
+- `BITRIX_CLIENT_ID` — опционально, если webhook/бот требует client id.
+
+Проверка отправки:
+
+```bash
+curl -X POST "https://finance.academy-management.ru/api/integrations/bitrix/test?month=2026-06" \
+  --cookie "finance_session=..."
 ```
 
 Nginx:
