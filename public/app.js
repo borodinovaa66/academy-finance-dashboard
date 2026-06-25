@@ -87,12 +87,12 @@ function entryPayload(form) {
   return {
     ...payload,
     bank: "",
-    product_incomes: Array.from(form.querySelectorAll(".product-income-row"))
-      .map((row) => ({
-        product_id: row.querySelector("[data-product-select]")?.value || "",
-        amount: normalizeNumber(row.querySelector("[data-product-amount]")?.value || "0") || "0",
+    product_incomes: productReferences()
+      .map((product) => ({
+        product_id: product.id,
+        amount: payload[`product_income_${product.id}`] || "0",
       }))
-      .filter((item) => item.product_id && Number(item.amount) > 0),
+      .filter((item) => Number(item.amount) > 0),
   };
 }
 
@@ -494,56 +494,24 @@ function renderAccountingForms() {
   renderProductsList();
 }
 
-function productOptions(selectedId = "") {
-  return productReferences()
-    .map((product) => {
-      const selected = String(product.id) === String(selectedId) ? "selected" : "";
-      return `<option value="${product.id}" ${selected}>${escapeHtml(product.name)}</option>`;
-    })
-    .join("");
-}
-
-function productIncomeRowTemplate(row = {}) {
-  return `
-    <div class="product-income-row">
-      <select data-product-select>
-        <option value="">Выберите продукт</option>
-        ${productOptions(row.product_id)}
-      </select>
-      <input data-product-amount type="text" inputmode="numeric" data-format-number value="${formatInputValue(row.amount || 0)}" placeholder="Сумма" />
-      <button class="secondary-action product-row-remove" type="button" aria-label="Удалить строку">Удалить</button>
-    </div>
-  `;
-}
-
-function bindProductIncomeRows(container) {
-  bindFormattedNumberInputs(container);
-  container.querySelectorAll(".product-row-remove").forEach((button) => {
-    if (button.dataset.boundRemove) return;
-    button.dataset.boundRemove = "true";
-    button.addEventListener("click", () => {
-      const rows = container.querySelectorAll(".product-income-row");
-      if (rows.length <= 1) {
-        const row = button.closest(".product-income-row");
-        row.querySelector("[data-product-select]").value = "";
-        row.querySelector("[data-product-amount]").value = "0";
-        return;
-      }
-      button.closest(".product-income-row").remove();
-    });
-  });
-}
-
-function renderProductIncomeInputs(values = []) {
+function renderProductIncomeInputs(values = new Map()) {
   const products = productReferences();
   const container = byId("productIncomeInputs");
   if (!products.length) {
-    container.innerHTML = `<div class="empty-state">Добавьте продукт, после этого здесь появится выбор из списка.</div>`;
+    container.innerHTML = `<div class="empty-state">Добавьте продукт в блоке «Список продуктов», после этого здесь появятся поля для ввода сумм.</div>`;
     return;
   }
-  const rows = values.length ? values : [{}];
-  container.innerHTML = rows.map((row) => productIncomeRowTemplate(row)).join("");
-  bindProductIncomeRows(container);
+  container.innerHTML = products
+    .map((product) => {
+      const value = values.get(Number(product.id)) || 0;
+      return `
+        <label>${escapeHtml(product.name)}
+          <input name="product_income_${product.id}" type="text" inputmode="numeric" data-format-number value="${formatInputValue(value)}" />
+        </label>
+      `;
+    })
+    .join("");
+  bindFormattedNumberInputs(container);
 }
 
 function renderProductsList() {
@@ -587,7 +555,7 @@ function renderEntriesHistory() {
       form.elements.deposit_income.value = formatInputValue(entry.deposit_income);
       form.elements.expense.value = formatInputValue(entry.expense);
       form.elements.cash_balance.value = formatInputValue(entry.cash_balance);
-      renderProductIncomeInputs(entry.product_incomes || []);
+      renderProductIncomeInputs(new Map((entry.product_incomes || []).map((item) => [Number(item.product_id), item.amount])));
       form.elements.comment.value = entry.comment || "";
       form.scrollIntoView({ behavior: "smooth", block: "start" });
     });
@@ -732,22 +700,6 @@ async function addProductByName(name) {
   toast("Продукт добавлен");
   await loadData();
 }
-
-byId("quickAddProductButton").addEventListener("click", async () => {
-  const input = byId("quickProductName");
-  await addProductByName(input.value);
-  input.value = "";
-});
-
-byId("addProductIncomeRowButton").addEventListener("click", () => {
-  const container = byId("productIncomeInputs");
-  if (!productReferences().length) {
-    toast("Сначала добавьте продукт");
-    return;
-  }
-  container.insertAdjacentHTML("beforeend", productIncomeRowTemplate());
-  bindProductIncomeRows(container);
-});
 
 byId("productForm").addEventListener("submit", async (event) => {
   event.preventDefault();

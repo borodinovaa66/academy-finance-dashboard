@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Финансовый отчет</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/styles.css?v=20260625-2" />
+    <link rel="stylesheet" href="/styles.css?v=20260625-3" />
   </head>
   <body>
     <section id="loginScreen" class="login-screen">
@@ -247,12 +247,7 @@
               <label>Остаток на счетах <input name="cash_balance" type="text" inputmode="numeric" data-format-number required /></label>
               <div class="product-entry-block">
                 <div class="form-note">Поступления по продуктам</div>
-                <div class="inline-add-row">
-                  <input id="quickProductName" placeholder="Новый продукт" />
-                  <button id="quickAddProductButton" class="secondary-action" type="button">Добавить продукт</button>
-                </div>
                 <div id="productIncomeInputs" class="product-income-inputs"></div>
-                <button id="addProductIncomeRowButton" class="secondary-action" type="button">Добавить строку поступления</button>
               </div>
               <label>Комментарий <input name="comment" /></label>
               <button class="primary-action" type="submit">Сохранить день</button>
@@ -273,8 +268,8 @@
             </div>
 
             <form id="productForm" class="panel data-form">
-              <h3>Справочник продуктов</h3>
-              <label>Продукт <input name="name" placeholder="Название продукта" required /></label>
+              <h3>Список продуктов</h3>
+              <label>Новый продукт <input name="name" placeholder="Название продукта" required /></label>
               <button class="primary-action" type="submit">Добавить продукт</button>
               <div id="productsList" class="chips"></div>
             </form>
@@ -381,6 +376,6 @@
       </main>
     </div>
 
-    <script src="/app.js?v=20260625-2"></script>
+    <script src="/app.js?v=20260625-3"></script>
   </body>
 </html>

@@ -543,22 +543,9 @@ canvas { display: block; width: 100%; max-width: 100%; height: auto; }
   display: grid;
   gap: 8px;
 }
-.inline-add-row,
-.product-income-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
-  align-items: center;
-}
 .product-income-inputs {
   display: grid;
   gap: 8px;
-}
-.product-income-row {
-  grid-template-columns: minmax(0, 1fr) minmax(110px, 0.65fr) auto;
-}
-.product-row-remove {
-  min-height: 42px;
 }
 label {
   display: grid;
@@ -794,8 +781,6 @@ input:focus, select:focus {
   .nav { width: 100%; grid-auto-flow: row; }
   .user-panel { width: 100%; }
   .month-picker { width: 100%; }
-  .inline-add-row,
-  .product-income-row { grid-template-columns: 1fr; }
   .vessel-line span { left: 16px; top: -22px; }
   .net-flow-scale { width: min(100%, 280px); }
   .net-flow-marker span {
