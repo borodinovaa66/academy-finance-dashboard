@@ -3,8 +3,8 @@ const APP_URL = process.env.APP_URL || "https://finance.academy-management.ru";
 function normalizeWebhookUrl(url) {
   const clean = String(url || "").trim();
   if (!clean) return "";
-  if (/\/imbot\.message\.add(?:\.json)?$/i.test(clean)) return clean;
-  return `${clean.replace(/\/+$/, "")}/imbot.message.add`;
+  if (/\/im\.message\.add(?:\.json)?$/i.test(clean)) return clean;
+  return `${clean.replace(/\/+$/, "")}/im.message.add`;
 }
 
 function isBitrixConfigured() {
