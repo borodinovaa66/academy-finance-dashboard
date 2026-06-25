@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Финансовый отчет</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/styles.css?v=20260625-1" />
+    <link rel="stylesheet" href="/styles.css?v=20260625-2" />
   </head>
   <body>
     <section id="loginScreen" class="login-screen">
@@ -247,7 +247,12 @@
               <label>Остаток на счетах <input name="cash_balance" type="text" inputmode="numeric" data-format-number required /></label>
               <div class="product-entry-block">
                 <div class="form-note">Поступления по продуктам</div>
+                <div class="inline-add-row">
+                  <input id="quickProductName" placeholder="Новый продукт" />
+                  <button id="quickAddProductButton" class="secondary-action" type="button">Добавить продукт</button>
+                </div>
                 <div id="productIncomeInputs" class="product-income-inputs"></div>
+                <button id="addProductIncomeRowButton" class="secondary-action" type="button">Добавить строку поступления</button>
               </div>
               <label>Комментарий <input name="comment" /></label>
               <button class="primary-action" type="submit">Сохранить день</button>
@@ -376,6 +381,6 @@
       </main>
     </div>
 
-    <script src="/app.js?v=20260625-1"></script>
+    <script src="/app.js?v=20260625-2"></script>
   </body>
 </html>

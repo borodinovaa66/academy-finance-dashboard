@@ -409,10 +409,14 @@ function upsertEntry(db, actorId, input) {
     INSERT INTO product_income_entries (report_date, product_id, amount, updated_by, updated_at)
     VALUES (?, ?, ?, ?, ?)
   `);
+  const productAmountMap = new Map();
   productIncomes.forEach((item) => {
     const productId = Number(item.product_id || item.productId || 0);
     const amount = toNumber(item.amount);
     if (!productId || amount <= 0) return;
+    productAmountMap.set(productId, (productAmountMap.get(productId) || 0) + amount);
+  });
+  productAmountMap.forEach((amount, productId) => {
     insertProductIncome.run(input.report_date, productId, amount, actorId, nowIso());
   });
   log(db, actorId, "upsert", "daily_entry", input.report_date, input);
