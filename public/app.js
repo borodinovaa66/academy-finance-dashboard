@@ -667,11 +667,19 @@ byId("monthInput").addEventListener("change", async (event) => {
 
 byId("entryForm").addEventListener("submit", async (event) => {
   event.preventDefault();
-  await api("/api/entries", {
+  const result = await api("/api/entries", {
     method: "POST",
     body: JSON.stringify(entryPayload(event.currentTarget)),
   });
-  toast("Данные дня сохранены");
+  if (result.bitrix?.ok) {
+    toast("Данные дня сохранены и отправлены в Bitrix24");
+  } else if (result.bitrix?.skipped) {
+    toast("Данные дня сохранены, но отправка в Bitrix24 не настроена");
+  } else if (result.bitrix?.error) {
+    toast(`Данные дня сохранены, но сообщение в Bitrix24 не отправлено: ${result.bitrix.error}`);
+  } else {
+    toast("Данные дня сохранены");
+  }
   await loadData();
 });
 

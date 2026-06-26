@@ -21,6 +21,7 @@ const {
   getUserByLogin,
   listReferences,
   listUsers,
+  log,
   openDatabase,
   publicUser,
   summarize,
@@ -33,6 +34,24 @@ const PORT = Number(process.env.PORT || 3020);
 const SESSION_SECRET = process.env.SESSION_SECRET || "local-dev-secret-change-in-production";
 const PUBLIC_DIR = path.join(__dirname, "public");
 const db = openDatabase();
+
+async function sendAndLogBitrixSummary(userId, summary) {
+  const entityId = summary.latest_entry?.report_date || summary.totals?.last_date || summary.month;
+  try {
+    const result = await sendDailySummaryToBitrix(summary);
+    const skipped = Boolean(result?.skipped);
+    const payload = skipped
+      ? { ok: false, skipped: true, reason: result.reason }
+      : { ok: true, result: result?.result || result };
+    log(db, userId, skipped ? "skip" : "send", "bitrix_notification", entityId, payload);
+    return payload;
+  } catch (error) {
+    const payload = { ok: false, error: error.message };
+    log(db, userId, "error", "bitrix_notification", entityId, payload);
+    console.error(error.message);
+    return payload;
+  }
+}
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -176,17 +195,15 @@ async function handleApi(req, res, url) {
     upsertEntry(db, user.id, body);
     const month = String(body.report_date || "").slice(0, 7) || new Date().toISOString().slice(0, 7);
     const summary = summarize(db, month);
-    sendDailySummaryToBitrix(summary).catch((error) => {
-      console.error(error.message);
-    });
-    return sendJson(res, 200, { ok: true });
+    const bitrix = await sendAndLogBitrixSummary(user.id, summary);
+    return sendJson(res, 200, { ok: true, bitrix });
   }
 
   if (req.method === "POST" && url.pathname === "/api/integrations/bitrix/test") {
     requireRole(user, ["accountant", "admin"]);
     const month = url.searchParams.get("month") || new Date().toISOString().slice(0, 7);
-    const result = await sendDailySummaryToBitrix(summarize(db, month));
-    return sendJson(res, 200, { ok: true, result });
+    const bitrix = await sendAndLogBitrixSummary(user.id, summarize(db, month));
+    return sendJson(res, 200, { ok: true, bitrix });
   }
 
   if (req.method === "POST" && url.pathname === "/api/references") {

@@ -363,6 +363,19 @@ function upsertPlan(db, actorId, input) {
 }
 
 function upsertEntry(db, actorId, input) {
+  const productIncomes = Array.isArray(input.product_incomes) ? input.product_incomes : [];
+  const hasProductIncome = productIncomes.some((item) => toNumber(item.amount) > 0);
+  const hasAnyValue =
+    toNumber(input.client_income) ||
+    toNumber(input.deposit_income || 0) ||
+    toNumber(input.expense) ||
+    toNumber(input.cash_balance || 0) ||
+    hasProductIncome ||
+    String(input.comment || "").trim();
+  if (!hasAnyValue) {
+    throw Object.assign(new Error("Нельзя сохранить пустой день: внесите приход, расход, остаток или комментарий"), { statusCode: 400 });
+  }
+
   const previousBalance = db
     .prepare(
       `
@@ -403,7 +416,6 @@ function upsertEntry(db, actorId, input) {
     nowIso(),
     nowIso(),
   );
-  const productIncomes = Array.isArray(input.product_incomes) ? input.product_incomes : [];
   db.prepare("DELETE FROM product_income_entries WHERE report_date = ?").run(input.report_date);
   const insertProductIncome = db.prepare(`
     INSERT INTO product_income_entries (report_date, product_id, amount, updated_by, updated_at)
@@ -590,6 +602,7 @@ module.exports = {
   listReferences,
   listUsers,
   addReference,
+  log,
   openDatabase,
   publicUser,
   summarize,
