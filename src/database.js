@@ -470,6 +470,18 @@ function productIncomeTotals(db, month, clientIncomeTotal) {
   return items;
 }
 
+function hasFinancialData(entry) {
+  const productIncome = (entry.product_incomes || []).reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  return Boolean(
+    Number(entry.client_income || 0) ||
+      Number(entry.deposit_income || 0) ||
+      Number(entry.expense || 0) ||
+      Number(entry.cash_balance || 0) ||
+      productIncome ||
+      String(entry.comment || "").trim(),
+  );
+}
+
 function listReferences(db) {
   return db.prepare("SELECT * FROM reference_items WHERE active = 1 ORDER BY group_key, name").all();
 }
@@ -500,8 +512,9 @@ function summarize(db, month) {
     net_cash_flow_plan: storedPlan.client_income_plan - storedPlan.expense_plan,
   };
   const entries = listEntries(db, month);
-  const latestEntry = entries[entries.length - 1] || null;
-  const totals = entries.reduce(
+  const filledEntries = entries.filter(hasFinancialData);
+  const latestEntry = filledEntries[filledEntries.length - 1] || null;
+  const totals = filledEntries.reduce(
     (acc, item) => {
       acc.client_income += item.client_income;
       acc.deposit_income += item.deposit_income;
