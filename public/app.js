@@ -1,6 +1,6 @@
 const state = {
   user: null,
-  month: new Date().toISOString().slice(0, 7),
+  month: reportDateIso().slice(0, 7),
   summary: null,
   references: [],
   users: [],
@@ -66,8 +66,9 @@ function formatDate(value) {
   return `${day}.${month}.${year}`;
 }
 
-function todayIso() {
+function reportDateIso() {
   const date = new Date();
+  date.setDate(date.getDate() - 1);
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
@@ -274,18 +275,18 @@ function renderDashboard() {
   const isNetFlowRisk = summary.net_cash_flow_status === "risk";
   const isNetFlowNegative = summary.net_cash_flow < 0;
   const latestEntry = summary.latest_entry;
-  const today = todayIso();
+  const reportDate = reportDateIso();
   const dailyIncome = latestEntry ? latestEntry.client_income + latestEntry.deposit_income : 0;
   const dailyRefunds = latestEntry?.client_refunds || 0;
   const dailyDateLabel = latestEntry?.report_date ? formatDate(latestEntry.report_date) : "нет данных";
   const dailyMeta = latestEntry?.report_date
-    ? latestEntry.report_date === today
-      ? "данные за сегодня"
-      : `последние данные, сегодня ${formatDate(today)}`
-    : `сегодня ${formatDate(today)}`;
+    ? latestEntry.report_date === reportDate
+      ? "данные за отчетную дату"
+      : `последние внесенные данные; отчетная дата ${formatDate(reportDate)}`
+    : `отчетная дата ${formatDate(reportDate)}`;
 
   byId("dailyDataDate").textContent = dailyDateLabel;
-  byId("dailyTodayDate").textContent = latestEntry?.report_date ? `сегодня ${formatDate(today)}` : "данные еще не внесены";
+  byId("dailyTodayDate").textContent = latestEntry?.report_date ? `отчет за вчера: ${formatDate(reportDate)}` : "данные еще не внесены";
   byId("dailyIncome").textContent = rub(dailyIncome);
   byId("dailyIncomeMeta").textContent = dailyMeta;
   byId("dailyDepositIncome").textContent = rub(latestEntry?.deposit_income || 0);
@@ -486,8 +487,8 @@ function renderAccountingForms() {
     input.value = formatInputValue(plan[key] || 0, input.hasAttribute("data-signed-number"));
   });
   refreshPlanNetCashFlow(planForm);
-  const today = todayIso();
-  byId("entryForm").elements.report_date.value = today;
+  const reportDate = reportDateIso();
+  byId("entryForm").elements.report_date.value = reportDate;
   ["client_income", "deposit_income", "expense", "client_refunds", "cash_balance"].forEach((key) => {
     const input = byId("entryForm").elements[key];
     if (!input.value) input.value = key === "cash_balance" ? String(state.summary.totals.cash_balance || 0) : "0";

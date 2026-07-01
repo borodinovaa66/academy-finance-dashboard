@@ -35,6 +35,12 @@ const SESSION_SECRET = process.env.SESSION_SECRET || "local-dev-secret-change-in
 const PUBLIC_DIR = path.join(__dirname, "public");
 const db = openDatabase();
 
+function reportMonth() {
+  const date = new Date();
+  date.setDate(date.getDate() - 1);
+  return date.toISOString().slice(0, 7);
+}
+
 async function sendAndLogBitrixSummary(userId, summary) {
   const entityId = summary.latest_entry?.report_date || summary.totals?.last_date || summary.month;
   try {
@@ -142,7 +148,7 @@ async function handleApi(req, res, url) {
   const user = requireAuth(req);
 
   if (req.method === "GET" && url.pathname === "/api/bootstrap") {
-    const month = url.searchParams.get("month") || new Date().toISOString().slice(0, 7);
+    const month = url.searchParams.get("month") || reportMonth();
     const payload = {
       user: publicUser(user),
       summary: summarize(db, month),
@@ -193,7 +199,7 @@ async function handleApi(req, res, url) {
     requireRole(user, ["accountant", "admin"]);
     const body = await parseBody(req);
     upsertEntry(db, user.id, body);
-    const month = String(body.report_date || "").slice(0, 7) || new Date().toISOString().slice(0, 7);
+    const month = String(body.report_date || "").slice(0, 7) || reportMonth();
     const summary = summarize(db, month);
     const bitrix = await sendAndLogBitrixSummary(user.id, summary);
     return sendJson(res, 200, { ok: true, bitrix });
@@ -201,7 +207,7 @@ async function handleApi(req, res, url) {
 
   if (req.method === "POST" && url.pathname === "/api/integrations/bitrix/test") {
     requireRole(user, ["accountant", "admin"]);
-    const month = url.searchParams.get("month") || new Date().toISOString().slice(0, 7);
+    const month = url.searchParams.get("month") || reportMonth();
     const bitrix = await sendAndLogBitrixSummary(user.id, summarize(db, month));
     return sendJson(res, 200, { ok: true, bitrix });
   }
