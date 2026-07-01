@@ -10,7 +10,7 @@ const {
   sessionCookie,
   verifyPassword,
 } = require("./src/auth");
-const { sendDailySummaryToBitrix } = require("./src/bitrix");
+const { sendDailySummaryToBitrix, sendMonthlySummaryToBitrix } = require("./src/bitrix");
 const {
   addReference,
   createSession,
@@ -41,6 +41,28 @@ function reportMonth() {
   return date.toISOString().slice(0, 7);
 }
 
+function isLastDayOfMonth(dateValue) {
+  const [year, month, day] = String(dateValue || "").split("-").map(Number);
+  if (!year || !month || !day) return false;
+  return day === new Date(year, month, 0).getDate();
+}
+
+function alreadySentMonthlySummary(month) {
+  const row = db
+    .prepare(
+      `
+        SELECT id FROM audit_log
+        WHERE entity = 'bitrix_monthly_summary'
+          AND entity_id = ?
+          AND action = 'send'
+          AND json_extract(payload, '$.ok') = 1
+        LIMIT 1
+      `,
+    )
+    .get(month);
+  return Boolean(row);
+}
+
 async function sendAndLogBitrixSummary(userId, summary) {
   const entityId = summary.latest_entry?.report_date || summary.totals?.last_date || summary.month;
   try {
@@ -54,6 +76,29 @@ async function sendAndLogBitrixSummary(userId, summary) {
   } catch (error) {
     const payload = { ok: false, error: error.message };
     log(db, userId, "error", "bitrix_notification", entityId, payload);
+    console.error(error.message);
+    return payload;
+  }
+}
+
+async function sendAndLogBitrixMonthlySummary(userId, summary) {
+  const entityId = summary.month;
+  if (alreadySentMonthlySummary(entityId)) {
+    const payload = { ok: true, skipped: true, reason: "monthly_summary_already_sent" };
+    log(db, userId, "skip", "bitrix_monthly_summary", entityId, payload);
+    return payload;
+  }
+  try {
+    const result = await sendMonthlySummaryToBitrix(summary);
+    const skipped = Boolean(result?.skipped);
+    const payload = skipped
+      ? { ok: false, skipped: true, reason: result.reason }
+      : { ok: true, result: result?.result || result };
+    log(db, userId, skipped ? "skip" : "send", "bitrix_monthly_summary", entityId, payload);
+    return payload;
+  } catch (error) {
+    const payload = { ok: false, error: error.message };
+    log(db, userId, "error", "bitrix_monthly_summary", entityId, payload);
     console.error(error.message);
     return payload;
   }
@@ -202,7 +247,8 @@ async function handleApi(req, res, url) {
     const month = String(body.report_date || "").slice(0, 7) || reportMonth();
     const summary = summarize(db, month);
     const bitrix = await sendAndLogBitrixSummary(user.id, summary);
-    return sendJson(res, 200, { ok: true, bitrix });
+    const monthlyBitrix = isLastDayOfMonth(body.report_date) ? await sendAndLogBitrixMonthlySummary(user.id, summary) : null;
+    return sendJson(res, 200, { ok: true, bitrix, monthlyBitrix });
   }
 
   if (req.method === "POST" && url.pathname === "/api/integrations/bitrix/test") {

@@ -67,6 +67,24 @@ function buildDailySummaryMessage(summary) {
   ].join("\n");
 }
 
+function buildMonthlySummaryMessage(summary) {
+  return [
+    "Итоговая финансовая сводка за месяц",
+    `Месяц: ${summary.month}`,
+    "",
+    `- Поступления: ${money(summary.total_income)} / план ${money(summary.plan.client_income_plan)}`,
+    `- Доход по депозитам: ${money(summary.totals.deposit_income)}`,
+    `- Расходы: ${money(summary.totals.expense)} / план ${money(summary.plan.expense_plan)}`,
+    `- Возвраты клиентам: ${money(summary.totals.client_refunds)} / в составе расходов`,
+    `- ЧДП факт: ${signedMoney(summary.net_cash_flow)} / план ${money(summary.plan.net_cash_flow_plan)}`,
+    `- Остаток на счетах: ${money(summary.totals.cash_balance)} на ${formatDate(summary.totals.last_date)}`,
+    "",
+    productLines(summary),
+    "",
+    `Дашборд: ${APP_URL}`,
+  ].join("\n");
+}
+
 async function sendBitrixMessage(message) {
   if (!isBitrixConfigured()) return { skipped: true, reason: "Bitrix integration is not configured" };
 
@@ -99,8 +117,14 @@ async function sendDailySummaryToBitrix(summary) {
   return sendBitrixMessage(buildDailySummaryMessage(summary));
 }
 
+async function sendMonthlySummaryToBitrix(summary) {
+  return sendBitrixMessage(buildMonthlySummaryMessage(summary));
+}
+
 module.exports = {
   buildDailySummaryMessage,
+  buildMonthlySummaryMessage,
   isBitrixConfigured,
   sendDailySummaryToBitrix,
+  sendMonthlySummaryToBitrix,
 };

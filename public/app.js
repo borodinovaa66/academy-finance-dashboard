@@ -678,7 +678,9 @@ byId("entryForm").addEventListener("submit", async (event) => {
     body: JSON.stringify(entryPayload(event.currentTarget)),
   });
   if (result.bitrix?.ok) {
-    toast("Данные дня сохранены и отправлены в Bitrix24");
+    toast(result.monthlyBitrix?.ok && !result.monthlyBitrix?.skipped
+      ? "Данные дня сохранены, ежедневная и месячная сводки отправлены в Bitrix24"
+      : "Данные дня сохранены и отправлены в Bitrix24");
   } else if (result.bitrix?.skipped) {
     toast("Данные дня сохранены, но отправка в Bitrix24 не настроена");
   } else if (result.bitrix?.error) {
