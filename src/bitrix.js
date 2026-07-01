@@ -39,6 +39,7 @@ function buildDailySummaryMessage(summary) {
   const latest = summary.latest_entry;
   const dailyIncome = latest ? latest.client_income + latest.deposit_income : 0;
   const dailyExpense = latest ? latest.expense : 0;
+  const dailyRefunds = latest ? latest.client_refunds : 0;
   const dailyBalance = latest ? latest.cash_balance : summary.totals.cash_balance;
 
   return [
@@ -49,11 +50,13 @@ function buildDailySummaryMessage(summary) {
     `- Поступления: ${money(dailyIncome)}`,
     `- Доход по депозитам: ${money(latest?.deposit_income || 0)}`,
     `- Расходы: ${money(dailyExpense)}`,
+    `- Возвраты клиентам: ${money(dailyRefunds)}`,
     `- Остаток на счетах: ${money(dailyBalance)}`,
     "",
     "Итого за месяц:",
     `- Поступления: ${money(summary.total_income)} / план ${money(summary.plan.client_income_plan)}`,
     `- Расходы: ${money(summary.totals.expense)} / план ${money(summary.plan.expense_plan)}`,
+    `- Возвраты клиентам: ${money(summary.totals.client_refunds)} / в составе расходов`,
     `- ЧДП факт: ${signedMoney(summary.net_cash_flow)} / план ${money(summary.plan.net_cash_flow_plan)}`,
     `- Прогноз ЧДП: ${signedMoney(summary.net_cash_flow_forecast)}`,
     `- До плана ЧДП: ${signedMoney(summary.net_cash_flow_delta)}`,

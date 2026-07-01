@@ -276,6 +276,7 @@ function renderDashboard() {
   const latestEntry = summary.latest_entry;
   const today = todayIso();
   const dailyIncome = latestEntry ? latestEntry.client_income + latestEntry.deposit_income : 0;
+  const dailyRefunds = latestEntry?.client_refunds || 0;
   const dailyDateLabel = latestEntry?.report_date ? formatDate(latestEntry.report_date) : "нет данных";
   const dailyMeta = latestEntry?.report_date
     ? latestEntry.report_date === today
@@ -290,14 +291,17 @@ function renderDashboard() {
   byId("dailyDepositIncome").textContent = rub(latestEntry?.deposit_income || 0);
   byId("dailyDepositShare").textContent = `доля ${percent(latestEntry?.deposit_income || 0, dailyIncome)} в приходах дня`;
   byId("dailyExpense").textContent = rub(latestEntry?.expense || 0);
-  byId("dailyExpenseMeta").textContent = dailyMeta;
+  byId("dailyExpenseMeta").textContent = `${dailyMeta}; в том числе возвраты клиентам ${rub(dailyRefunds)}`;
+  byId("dailyClientRefunds").textContent = rub(dailyRefunds);
+  byId("dailyClientRefundsMeta").textContent = latestEntry?.report_date ? "в составе расходов за день" : "данные еще не внесены";
 
   byId("clientIncome").textContent = rub(summary.total_income);
   byId("clientPlan").textContent = `план приходов ${rub(plan.client_income_plan)}`;
   byId("depositIncome").textContent = rub(totals.deposit_income);
   byId("depositShare").textContent = `доля ${percent(totals.deposit_income, summary.total_income)} в приходах`;
   byId("expense").textContent = rub(totals.expense);
-  byId("expensePlan").textContent = `план расходов ${rub(plan.expense_plan)}`;
+  byId("expensePlan").textContent = `план расходов ${rub(plan.expense_plan)}, в том числе возвраты клиентам ${rub(totals.client_refunds || 0)}`;
+  byId("clientRefunds").textContent = rub(totals.client_refunds || 0);
   byId("cashBalance").textContent = rub(totals.cash_balance);
   byId("balanceDate").textContent = totals.last_date ? `на ${totals.last_date}` : "нет данных";
   renderProductIncomeDashboard();
@@ -484,7 +488,7 @@ function renderAccountingForms() {
   refreshPlanNetCashFlow(planForm);
   const today = todayIso();
   byId("entryForm").elements.report_date.value = today;
-  ["client_income", "deposit_income", "expense", "cash_balance"].forEach((key) => {
+  ["client_income", "deposit_income", "expense", "client_refunds", "cash_balance"].forEach((key) => {
     const input = byId("entryForm").elements[key];
     if (!input.value) input.value = key === "cash_balance" ? String(state.summary.totals.cash_balance || 0) : "0";
     input.value = formatInputValue(input.value, input.hasAttribute("data-signed-number"));
@@ -538,7 +542,7 @@ function renderEntriesHistory() {
         <div class="entry-row">
           <div>
             <strong>${escapeHtml(entry.report_date)}</strong>
-            <span>Приходы ${rub(income)} · депозиты ${rub(entry.deposit_income)} (${percent(entry.deposit_income, income)}) · Расходы ${rub(entry.expense)} · Остаток ${rub(entry.cash_balance)}</span>
+            <span>Приходы ${rub(income)} · депозиты ${rub(entry.deposit_income)} (${percent(entry.deposit_income, income)}) · Расходы ${rub(entry.expense)} · Возвраты ${rub(entry.client_refunds || 0)} · Остаток ${rub(entry.cash_balance)}</span>
           </div>
           <button class="secondary-action" data-edit-entry="${escapeHtml(entry.report_date)}" type="button">Изменить</button>
         </div>
@@ -554,6 +558,7 @@ function renderEntriesHistory() {
       form.elements.client_income.value = formatInputValue(entry.client_income);
       form.elements.deposit_income.value = formatInputValue(entry.deposit_income);
       form.elements.expense.value = formatInputValue(entry.expense);
+      form.elements.client_refunds.value = formatInputValue(entry.client_refunds || 0);
       form.elements.cash_balance.value = formatInputValue(entry.cash_balance);
       renderProductIncomeInputs(new Map((entry.product_incomes || []).map((item) => [Number(item.product_id), item.amount])));
       form.elements.comment.value = entry.comment || "";

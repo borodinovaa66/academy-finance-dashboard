@@ -70,6 +70,7 @@ function migrate(db) {
       client_income INTEGER NOT NULL DEFAULT 0,
       deposit_income INTEGER NOT NULL DEFAULT 0,
       expense INTEGER NOT NULL DEFAULT 0,
+      client_refunds INTEGER NOT NULL DEFAULT 0,
       cash_balance INTEGER NOT NULL DEFAULT 0,
       comment TEXT NOT NULL DEFAULT '',
       status TEXT NOT NULL DEFAULT 'confirmed',
@@ -108,6 +109,14 @@ function migrate(db) {
     );
   `);
   ensureViewerRoleAllowed(db);
+  ensureDailyEntriesColumns(db);
+}
+
+function ensureDailyEntriesColumns(db) {
+  const columns = db.prepare("PRAGMA table_info(daily_entries)").all().map((column) => column.name);
+  if (!columns.includes("client_refunds")) {
+    db.exec("ALTER TABLE daily_entries ADD COLUMN client_refunds INTEGER NOT NULL DEFAULT 0");
+  }
 }
 
 function ensureViewerRoleAllowed(db) {
@@ -193,10 +202,10 @@ function seed(db) {
   if (!entry) {
     db.prepare(`
       INSERT INTO daily_entries (
-        report_date, bank, client_income, deposit_income, expense,
+        report_date, bank, client_income, deposit_income, expense, client_refunds,
         cash_balance, comment, status, created_at, updated_at
       )
-      VALUES ('2026-06-09', 'ТБанк', 2744093, 103332, 4120599, 28602750, 'Стартовые данные из примера', 'confirmed', ?, ?)
+      VALUES ('2026-06-09', 'ТБанк', 2744093, 103332, 4120599, 0, 28602750, 'Стартовые данные из примера', 'confirmed', ?, ?)
     `).run(nowIso(), nowIso());
   }
 
@@ -369,6 +378,7 @@ function upsertEntry(db, actorId, input) {
     toNumber(input.client_income) ||
     toNumber(input.deposit_income || 0) ||
     toNumber(input.expense) ||
+    toNumber(input.client_refunds || 0) ||
     toNumber(input.cash_balance || 0) ||
     hasProductIncome ||
     String(input.comment || "").trim();
@@ -389,15 +399,16 @@ function upsertEntry(db, actorId, input) {
   const cashBalance = input.cash_balance === undefined || input.cash_balance === null || input.cash_balance === "" ? previousBalance || 0 : toNumber(input.cash_balance);
   db.prepare(`
     INSERT INTO daily_entries (
-      report_date, bank, client_income, deposit_income, expense,
+      report_date, bank, client_income, deposit_income, expense, client_refunds,
       cash_balance, comment, status, updated_by, created_at, updated_at
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(report_date) DO UPDATE SET
       bank = excluded.bank,
       client_income = excluded.client_income,
       deposit_income = excluded.deposit_income,
       expense = excluded.expense,
+      client_refunds = excluded.client_refunds,
       cash_balance = excluded.cash_balance,
       comment = excluded.comment,
       status = excluded.status,
@@ -409,6 +420,7 @@ function upsertEntry(db, actorId, input) {
     toNumber(input.client_income),
     toNumber(input.deposit_income || 0),
     toNumber(input.expense),
+    toNumber(input.client_refunds || 0),
     cashBalance,
     input.comment || "",
     input.status || "confirmed",
@@ -488,6 +500,7 @@ function hasFinancialData(entry) {
     Number(entry.client_income || 0) ||
       Number(entry.deposit_income || 0) ||
       Number(entry.expense || 0) ||
+      Number(entry.client_refunds || 0) ||
       Number(entry.cash_balance || 0) ||
       productIncome ||
       String(entry.comment || "").trim(),
@@ -531,12 +544,13 @@ function summarize(db, month) {
       acc.client_income += item.client_income;
       acc.deposit_income += item.deposit_income;
       acc.expense += item.expense;
+      acc.client_refunds += item.client_refunds;
       acc.cash_balance = item.cash_balance;
       acc.last_date = item.report_date;
       acc.bank = item.bank;
       return acc;
     },
-    { client_income: 0, deposit_income: 0, expense: 0, cash_balance: 0, last_date: null, bank: "" },
+    { client_income: 0, deposit_income: 0, expense: 0, client_refunds: 0, cash_balance: 0, last_date: null, bank: "" },
   );
   const totalIncome = totals.client_income + totals.deposit_income;
   const productTotals = productIncomeTotals(db, month, totals.client_income);

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Финансовый отчет</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/styles.css?v=20260626-1" />
+    <link rel="stylesheet" href="/styles.css?v=20260701-1" />
   </head>
   <body>
     <section id="loginScreen" class="login-screen">
@@ -90,6 +90,11 @@
               <div id="dailyExpense" class="metric-value">0</div>
               <div id="dailyExpenseMeta" class="metric-meta">последняя внесенная дата</div>
             </article>
+            <article class="metric-card expense">
+              <div class="metric-label">Возвраты клиентам за день</div>
+              <div id="dailyClientRefunds" class="metric-value">0</div>
+              <div id="dailyClientRefundsMeta" class="metric-meta">в составе расходов</div>
+            </article>
           </section>
 
           <div class="kpi-section-title">Итого за месяц</div>
@@ -108,6 +113,11 @@
               <div class="metric-label">Расходы</div>
               <div id="expense" class="metric-value">0</div>
               <div id="expensePlan" class="metric-meta">план 0</div>
+            </article>
+            <article class="metric-card expense">
+              <div class="metric-label">Возвраты клиентам</div>
+              <div id="clientRefunds" class="metric-value">0</div>
+              <div class="metric-meta">в составе расходов</div>
             </article>
             <article class="metric-card cash">
               <div class="metric-label">Остаток на счетах</div>
@@ -244,6 +254,7 @@
               <label>Приходы от клиентов <input name="client_income" type="text" inputmode="numeric" data-format-number required /></label>
               <label>Доход по депозитам <input name="deposit_income" type="text" inputmode="numeric" data-format-number required /></label>
               <label>Расходы <input name="expense" type="text" inputmode="numeric" data-format-number required /></label>
+              <label>Возвраты клиентам <input name="client_refunds" type="text" inputmode="numeric" data-format-number required /></label>
               <label>Остаток на счетах <input name="cash_balance" type="text" inputmode="numeric" data-format-number required /></label>
               <div class="product-entry-block">
                 <div class="form-note">Поступления по продуктам</div>
@@ -376,6 +387,6 @@
       </main>
     </div>
 
-    <script src="/app.js?v=20260626-1"></script>
+    <script src="/app.js?v=20260701-1"></script>
   </body>
 </html>
