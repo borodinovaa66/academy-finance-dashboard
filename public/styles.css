@@ -131,6 +131,12 @@ p { color: var(--muted); }
   font-weight: 800;
   text-transform: uppercase;
 }
+.header-date {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 20px;
+  font-weight: 700;
+}
 .month-picker {
   width: 180px;
   padding: 12px;

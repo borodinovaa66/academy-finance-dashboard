@@ -66,9 +66,39 @@ function formatDate(value) {
   return `${day}.${month}.${year}`;
 }
 
+function formatDateLong(value) {
+  if (!value) return "-";
+  const [year, month, day] = String(value).split("-");
+  const monthNames = [
+    "января",
+    "февраля",
+    "марта",
+    "апреля",
+    "мая",
+    "июня",
+    "июля",
+    "августа",
+    "сентября",
+    "октября",
+    "ноября",
+    "декабря",
+  ];
+  const monthName = monthNames[Number(month) - 1];
+  if (!year || !monthName || !day) return String(value);
+  return `${String(Number(day)).padStart(2, "0")} ${monthName} ${year} г.`;
+}
+
 function reportDateIso() {
   const date = new Date();
   date.setDate(date.getDate() - 1);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function currentDateIso() {
+  const date = new Date();
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
@@ -278,15 +308,13 @@ function renderDashboard() {
   const reportDate = reportDateIso();
   const dailyIncome = latestEntry ? latestEntry.client_income + latestEntry.deposit_income : 0;
   const dailyRefunds = latestEntry?.client_refunds || 0;
-  const dailyDateLabel = latestEntry?.report_date ? formatDate(latestEntry.report_date) : "нет данных";
   const dailyMeta = latestEntry?.report_date
     ? latestEntry.report_date === reportDate
       ? "данные на сегодня"
       : `последние внесенные данные на сегодня; отчетная дата ${formatDate(reportDate)}`
     : `данные на сегодня еще не внесены; отчетная дата ${formatDate(reportDate)}`;
 
-  byId("dailyDataDate").textContent = dailyDateLabel;
-  byId("dailyTodayDate").textContent = latestEntry?.report_date ? `отчет за вчера: ${formatDate(reportDate)}` : "данные еще не внесены";
+  byId("headerDate").textContent = formatDateLong(currentDateIso());
   byId("dailyIncome").textContent = rub(dailyIncome);
   byId("dailyIncomeMeta").textContent = dailyMeta;
   byId("dailyDepositIncome").textContent = rub(latestEntry?.deposit_income || 0);
