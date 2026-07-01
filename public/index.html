@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Финансовый отчет</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/styles.css?v=20260701-4" />
+    <link rel="stylesheet" href="/styles.css?v=20260701-5" />
   </head>
   <body>
     <section id="loginScreen" class="login-screen">
@@ -67,67 +67,6 @@
               <p>План, факт, прогноз и текущий денежный поток.</p>
             </div>
           </div>
-
-          <div class="kpi-section-title">Ежедневные данные</div>
-          <section class="daily-kpi-grid">
-            <article class="metric-card daily">
-              <div class="metric-label">Дата данных</div>
-              <div id="dailyDataDate" class="metric-value">-</div>
-              <div id="dailyTodayDate" class="metric-meta">отчет за вчера</div>
-            </article>
-            <article class="metric-card income">
-              <div class="metric-label">Приходы за день</div>
-              <div id="dailyIncome" class="metric-value">0</div>
-              <div id="dailyIncomeMeta" class="metric-meta">последняя внесенная дата</div>
-            </article>
-            <article class="metric-card deposit">
-              <div class="metric-label">Доход по депозитам за день</div>
-              <div id="dailyDepositIncome" class="metric-value">0</div>
-              <div id="dailyDepositShare" class="metric-meta">доля 0%</div>
-            </article>
-            <article class="metric-card expense">
-              <div class="metric-label">Расходы за день</div>
-              <div id="dailyExpense" class="metric-value">0</div>
-              <div id="dailyExpenseMeta" class="metric-meta">последняя внесенная дата</div>
-            </article>
-            <article class="metric-card expense">
-              <div class="metric-label">Возвраты клиентам за день</div>
-              <div id="dailyClientRefunds" class="metric-value">0</div>
-              <div id="dailyClientRefundsMeta" class="metric-meta">в составе расходов</div>
-            </article>
-          </section>
-
-          <div class="kpi-section-title">Итого за месяц</div>
-          <section class="kpi-grid">
-            <article class="metric-card income">
-              <div class="metric-label">Приходы всего</div>
-              <div id="clientIncome" class="metric-value">0</div>
-              <div id="clientPlan" class="metric-meta">план 0</div>
-            </article>
-            <article class="metric-card deposit">
-              <div class="metric-label">Доход по депозитам</div>
-              <div id="depositIncome" class="metric-value">0</div>
-              <div id="depositShare" class="metric-meta">доля 0%</div>
-            </article>
-            <article class="metric-card expense">
-              <div class="metric-label">Расходы</div>
-              <div id="expense" class="metric-value">0</div>
-              <div id="expensePlan" class="metric-meta">план 0</div>
-            </article>
-            <article class="metric-card expense">
-              <div class="metric-label">Возвраты клиентам</div>
-              <div id="clientRefunds" class="metric-value">0</div>
-              <div class="metric-meta">в составе расходов</div>
-            </article>
-            <article class="metric-card cash">
-              <div class="metric-label">Остаток на счетах</div>
-              <div id="cashBalance" class="metric-value">0</div>
-              <div id="balanceDate" class="metric-meta">на дату</div>
-            </article>
-          </section>
-
-          <div class="kpi-section-title">Поступления по продуктам</div>
-          <section id="productIncomeGrid" class="product-income-grid"></section>
 
           <section class="insight-grid">
             <article class="panel vessel-panel">
@@ -226,7 +165,70 @@
               </div>
               <div id="flowCaption" class="flow-caption"></div>
             </article>
+          </section>
 
+          <div class="kpi-section-title">Ежедневные данные</div>
+          <section class="daily-kpi-grid">
+            <article class="metric-card daily">
+              <div class="metric-label">Дата данных</div>
+              <div id="dailyDataDate" class="metric-value">-</div>
+              <div id="dailyTodayDate" class="metric-meta">отчет за вчера</div>
+            </article>
+            <article class="metric-card income">
+              <div class="metric-label">Приходы за день</div>
+              <div id="dailyIncome" class="metric-value">0</div>
+              <div id="dailyIncomeMeta" class="metric-meta">последняя внесенная дата</div>
+            </article>
+            <article class="metric-card deposit">
+              <div class="metric-label">Доход по депозитам за день</div>
+              <div id="dailyDepositIncome" class="metric-value">0</div>
+              <div id="dailyDepositShare" class="metric-meta">доля 0%</div>
+            </article>
+            <article class="metric-card expense">
+              <div class="metric-label">Расходы за день</div>
+              <div id="dailyExpense" class="metric-value">0</div>
+              <div id="dailyExpenseMeta" class="metric-meta">последняя внесенная дата</div>
+            </article>
+            <article class="metric-card expense">
+              <div class="metric-label">Возвраты клиентам за день</div>
+              <div id="dailyClientRefunds" class="metric-value">0</div>
+              <div id="dailyClientRefundsMeta" class="metric-meta">в составе расходов</div>
+            </article>
+          </section>
+
+          <div class="kpi-section-title">Итого за месяц</div>
+          <section class="kpi-grid">
+            <article class="metric-card income">
+              <div class="metric-label">Приходы всего</div>
+              <div id="clientIncome" class="metric-value">0</div>
+              <div id="clientPlan" class="metric-meta">план 0</div>
+            </article>
+            <article class="metric-card deposit">
+              <div class="metric-label">Доход по депозитам</div>
+              <div id="depositIncome" class="metric-value">0</div>
+              <div id="depositShare" class="metric-meta">доля 0%</div>
+            </article>
+            <article class="metric-card expense">
+              <div class="metric-label">Расходы</div>
+              <div id="expense" class="metric-value">0</div>
+              <div id="expensePlan" class="metric-meta">план 0</div>
+            </article>
+            <article class="metric-card expense">
+              <div class="metric-label">Возвраты клиентам</div>
+              <div id="clientRefunds" class="metric-value">0</div>
+              <div class="metric-meta">в составе расходов</div>
+            </article>
+            <article class="metric-card cash">
+              <div class="metric-label">Остаток на счетах</div>
+              <div id="cashBalance" class="metric-value">0</div>
+              <div id="balanceDate" class="metric-meta">на дату</div>
+            </article>
+          </section>
+
+          <div class="kpi-section-title">Поступления по продуктам</div>
+          <section id="productIncomeGrid" class="product-income-grid"></section>
+
+          <section class="insight-grid">
             <article class="panel wide">
               <div class="panel-header">
                 <div>
@@ -387,6 +389,6 @@
       </main>
     </div>
 
-    <script src="/app.js?v=20260701-4"></script>
+    <script src="/app.js?v=20260701-5"></script>
   </body>
 </html>
