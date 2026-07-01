@@ -281,9 +281,9 @@ function renderDashboard() {
   const dailyDateLabel = latestEntry?.report_date ? formatDate(latestEntry.report_date) : "нет данных";
   const dailyMeta = latestEntry?.report_date
     ? latestEntry.report_date === reportDate
-      ? "данные за отчетную дату"
-      : `последние внесенные данные; отчетная дата ${formatDate(reportDate)}`
-    : `отчетная дата ${formatDate(reportDate)}`;
+      ? "данные на сегодня"
+      : `последние внесенные данные на сегодня; отчетная дата ${formatDate(reportDate)}`
+    : `данные на сегодня еще не внесены; отчетная дата ${formatDate(reportDate)}`;
 
   byId("dailyDataDate").textContent = dailyDateLabel;
   byId("dailyTodayDate").textContent = latestEntry?.report_date ? `отчет за вчера: ${formatDate(reportDate)}` : "данные еще не внесены";
