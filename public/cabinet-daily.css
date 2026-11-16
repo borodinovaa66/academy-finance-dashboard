@@ -19,3 +19,15 @@
 #finance-cabinet-v2 .fc-meta[hidden],#finance-cabinet-v2 .fc-demo[hidden]{display:none!important}
 @media(max-width:750px){#finance-cabinet-v2 .dc-charts{grid-template-columns:1fr}#finance-cabinet-v2 .dc-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:420px){#finance-cabinet-v2 .dc-controls label{width:100%}#finance-cabinet-v2 .dc-kpis strong{font-size:20px}#finance-cabinet-v2 .dc-kpis article{padding:12px}}
+
+#finance-cabinet-v2 .dc-section-heading{margin-top:22px;font-size:15px;font-weight:500}
+#finance-cabinet-v2 .dc-day-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+#finance-cabinet-v2 #daily-budget{padding:20px}
+#finance-cabinet-v2 #daily-budget h4{font-size:13px;font-weight:500;margin:14px 0}
+#finance-cabinet-v2 #daily-budget-gap{margin:12px 0;font-size:12px;line-height:1.6}
+#finance-cabinet-v2 #daily-budget-status{margin-top:8px}
+#finance-cabinet-v2 #daily-source-details{padding:18px;margin-bottom:22px}
+#finance-cabinet-v2 details summary{cursor:pointer;font-size:13px;font-weight:500;margin:12px 0}
+#finance-cabinet-v2 #daily-source-rows td{vertical-align:top;min-width:120px;font-size:12px;line-height:1.6}
+#finance-cabinet-v2 #daily-source-rows td:last-child{min-width:260px}
+@media(max-width:900px){#finance-cabinet-v2 .dc-day-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}

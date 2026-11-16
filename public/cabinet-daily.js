@@ -19,14 +19,32 @@
    q('#daily-latest').hidden=bank||!report.latestAvailableDate||report.latestAvailableDate.startsWith(report.month);
    const period=t?'С 1-го числа по '+fmt(report.throughDate):'Нет подтверждённых данных';
    q('#daily-totals').innerHTML=card('Поступления за месяц',t?.externalIncome,period)+card('Списания за месяц',t?.externalExpense,'Включают опознанные возвраты')+card('Денежный поток за месяц',t?.netFlow,'Поступления + проценты − списания')+
-     card('Поступления за последний день',last?last.externalIncome+last.interest:null,last?fmt(last.date):'—')+card('Проценты за месяц',t?.interest,bank?'Однократно, без возврата уже начисленных процентов':'Из ручного ввода')+card('Остаток на конец периода',t?.cashBalance,report.throughDate?fmt(report.throughDate)+' · не сумма дневных остатков':'—');
-   q('#daily-rows').innerHTML=[...rows].reverse().map(r=>`<tr><td>${fmt(r.date)}</td>${[r.externalIncome,r.interest,r.externalExpense,r.refunds,r.netFlow,r.cashBalance,r.cumulative.netFlow].map(v=>`<td class="num">${money(v)}</td>`).join('')}</tr>`).join('')+(t?`<tr><td>Итого</td>${[t.externalIncome,t.interest,t.externalExpense,t.refunds,t.netFlow,t.cashBalance,t.netFlow].map(v=>`<td class="num">${money(v)}</td>`).join('')}</tr>`:'<tr><td colspan="8">Нет данных за этот месяц</td></tr>');
+     card('Возвраты за месяц',t?.refunds,'Уже включены в списания')+card('Проценты за месяц',t?.interest,bank?'Однократно, без возврата уже начисленных процентов':'Из ручного ввода')+card('Остаток на конец периода',t?.cashBalance,report.throughDate?fmt(report.throughDate)+' · не сумма дневных остатков':'—');
+   q('#daily-day-title').textContent='Последний подтверждённый день'+(last?' · '+fmt(last.date):'');
+   const dayNote=last?(bank?`${last.operationCount} операций в выписке`:'Ручная запись'):'Нет подтверждённых данных';
+   q('#daily-day-totals').innerHTML=card('Поступления за день',last?.externalIncome,dayNote)+card('Списания за день',last?.externalExpense,dayNote)+card('Проценты за день',last?.interest,dayNote)+card('Денежный поток за день',last?.netFlow,dayNote);
+   renderBudget();
+   q('#daily-rows').innerHTML=[...rows].reverse().map(r=>`<tr><td>${fmt(r.date)}</td>${[r.externalIncome,r.interest,r.externalExpense,r.refunds,r.netFlow,r.cashBalance,r.cumulative.externalIncome,r.cumulative.externalExpense,r.cumulative.netFlow].map(v=>`<td class="num">${money(v)}</td>`).join('')}</tr>`).join('')+(t?`<tr><td>Итого</td>${[t.externalIncome,t.interest,t.externalExpense,t.refunds,t.netFlow,t.cashBalance,t.externalIncome,t.externalExpense,t.netFlow].map(v=>`<td class="num">${money(v)}</td>`).join('')}</tr>`:'<tr><td colspan="10">Нет данных за этот месяц</td></tr>');
    q('#daily-table-title').textContent='День и нарастающий итог · '+(bank?'подтверждённые банковские операции':'записи бухгалтерии');
    q('#daily-definition').textContent='¹ Возвраты входят в списания; второй раз не вычитаются. '+(report.classification||'');
    q('#daily-checks').textContent=bank?(t?`${report.operationCount} операций в полном снимке четырёх одобренных счетов. Проверены число операций, отсутствие дублей и равенство начальный остаток + поступления − списания = конечный остаток по каждому счёту. Евро в рублёвые итоги не сложены.`:'Предыдущие подтверждённые данные сохраняются при сбое обновления.'):
       (report.missingDays?.length?`До последней записи отсутствуют ${report.missingDays.length} календарных дней. Не заполнены нулями. `:'')+'Ручные записи не изменены автоматизацией. Их периметр и полнота требуют сверки с выписками.';
    q('#daily-accounts').innerHTML=(report.accounts||[]).map(a=>`<tr><td>${esc(a.name)} · ${esc(a.suffix)}</td><td>${a.currency==='643'?'RUB':'EUR'}</td><td class="num">${a.operations}</td><td class="num">${Number(a.closing).toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>`).join('');
    charts();
+ }
+ function renderBudget(){
+   const p=report.budget,show=!!p;
+   q('#daily-budget-status').textContent=show?`${p.version} · проверено ${fmt(p.asOf)} · не окончательное утверждение`:(report.budgetWarning||'Для выбранного месяца бюджетный снимок не загружен.');
+   q('#daily-source-details').hidden=!show;
+   for(const id of ['daily-budget-kpis','daily-budget-income','daily-budget-expense','daily-source-rows'])q('#'+id).replaceChildren();
+   q('#daily-budget-expense-note').textContent=show?p.expense.note:'';
+   q('#daily-budget-gap').textContent=show?'План на день и нарастающий план пока отсутствуют: нет дат и подтверждений оплат. Процент исполнения общего плана не рассчитан: факт охватывает Т-Банк, план — все каналы поступлений. Линейное распределение по дням не применяется.':'Плановые значения не заменены нулями.';
+   if(!show)return;
+   q('#daily-budget-kpis').innerHTML=card('Цель поступлений на месяц',p.income.total,'Все каналы · цель продаж')+card('Из них сбор дебиторки',p.income.receivables,'Не весь остаток долга, а план сбора')+card('Остальные продажи',p.income.newSales,'Даты поступлений ещё не подтверждены');
+   q('#daily-budget-income').innerHTML=p.income.rows.map(r=>`<tr><td>${esc(r.name)}</td><td class="num">${money(r.amount)}</td></tr>`).join('')+`<tr><td><strong>Итого цель поступлений</strong></td><td class="num"><strong>${money(p.income.total)}</strong></td></tr>`;
+   q('#daily-budget-expense').innerHTML=p.expense.blocks.map(r=>`<tr><td>${esc(r.name)}</td><td class="num">${money(r.amount)}</td></tr>`).join('')+`<tr><td><strong>Итого проект</strong></td><td class="num"><strong>${money(p.expense.total)}</strong></td></tr>`;
+   q('#daily-source-rows').innerHTML=p.sources.map(r=>`<tr><td>${/^https:\/\//.test(r.url)?`<a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(r.name)}</a>`:esc(r.name)}</td><td>${esc(r.status)}</td><td>${esc(r.detail)}</td></tr>`).join('');
+   const link=document.createElement('a');link.href=p.sourceUrl;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Открыть исходный бюджет ↗';q('#daily-budget-status').append(' · ',link);
  }
  function charts(){
    const rows=report?.rows||[];for(const id of ['daily-bars','daily-curve'])q('#'+id).replaceChildren();if(!rows.length||q('#fc-daily').hidden)return;
