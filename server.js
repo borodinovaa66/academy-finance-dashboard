@@ -2,6 +2,7 @@ const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
 const { readDailyReport } = require('./src/daily');
+const { readBudget, injectBudgetAssets } = require('./src/budget');
 const {
   SESSION_TTL_MS,
   clearSessionCookie,
@@ -194,6 +195,12 @@ async function handleApi(req, res, url) {
 
   const user = requireAuth(req);
 
+  if (req.method === 'GET' && url.pathname === '/api/cabinet/budget') {
+    requireRole(user, ['owner', 'accountant', 'viewer']);
+    const month = url.searchParams.get('month') || '2026-11';
+    return sendJson(res, 200, {budget: readBudget(PRIVATE_DIR, month, user.role)}, {'Cache-Control':'no-store, private'});
+  }
+
   if (req.method === 'GET' && url.pathname === '/api/cabinet/daily') {
     requireRole(user, ['owner', 'accountant', 'viewer']);
     const month = url.searchParams.get('month') || new Intl.DateTimeFormat('sv-SE', {timeZone:'Europe/Moscow',year:'numeric',month:'2-digit'}).format(new Date());
@@ -310,7 +317,7 @@ const server = http.createServer(async (req, res) => {
       const content = fs.readFileSync(path.join(PRIVATE_DIR, 'cabinet.html'));
       res.writeHead(200, {'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store, private','X-Frame-Options':'SAMEORIGIN','X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin',
         'Content-Security-Policy':"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'self'; base-uri 'none'"});
-      res.end(content);
+      res.end(injectBudgetAssets(content.toString('utf8')));
     } else if (url.pathname === '/' && !url.searchParams.has('legacy') && ['owner','accountant','viewer'].includes(getCurrentUser(req)?.role)) {
       res.writeHead(302, {Location:'/cabinet', 'Cache-Control':'no-store'});res.end();
     } else if (url.pathname.startsWith("/api/")) {
