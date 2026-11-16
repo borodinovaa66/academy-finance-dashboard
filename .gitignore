@@ -1,4 +1,7 @@
 data/
+private/
+local-state/
+__pycache__/
 .env
 *.log
 node_modules/

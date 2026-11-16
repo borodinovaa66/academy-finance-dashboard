@@ -669,6 +669,10 @@ async function init() {
     return;
   }
   state.user = me.user;
+  if (['owner', 'accountant', 'viewer'].includes(me.user.role) && new URLSearchParams(location.search).get('legacy') !== '1') {
+    window.location.replace('/cabinet');
+    return;
+  }
   byId("loginScreen").classList.add("hidden");
   byId("app").classList.remove("hidden");
   await loadData();

@@ -3,7 +3,7 @@ const path = require("node:path");
 const { DatabaseSync } = require("node:sqlite");
 const { hashPassword } = require("./auth");
 
-const DATA_DIR = path.join(__dirname, "..", "data");
+const DATA_DIR = process.env.FINANCE_DATA_DIR || path.join(__dirname, "..", "data");
 const DB_PATH = path.join(DATA_DIR, "finance-dashboard.sqlite");
 
 const roles = new Set(["owner", "accountant", "admin", "viewer"]);

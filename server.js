@@ -1,6 +1,7 @@
 const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
+const { readDailyReport } = require('./src/daily');
 const {
   SESSION_TTL_MS,
   clearSessionCookie,
@@ -33,6 +34,7 @@ const {
 const PORT = Number(process.env.PORT || 3020);
 const SESSION_SECRET = process.env.SESSION_SECRET || "local-dev-secret-change-in-production";
 const PUBLIC_DIR = path.join(__dirname, "public");
+const PRIVATE_DIR = process.env.FINANCE_PRIVATE_DIR || path.join(__dirname, 'private');
 const db = openDatabase();
 
 function reportMonth() {
@@ -192,6 +194,12 @@ async function handleApi(req, res, url) {
 
   const user = requireAuth(req);
 
+  if (req.method === 'GET' && url.pathname === '/api/cabinet/daily') {
+    requireRole(user, ['owner', 'accountant', 'viewer']);
+    const month = url.searchParams.get('month') || new Intl.DateTimeFormat('sv-SE', {timeZone:'Europe/Moscow',year:'numeric',month:'2-digit'}).format(new Date());
+    return sendJson(res, 200, readDailyReport(db, month, url.searchParams.get('source') || 'bank', PRIVATE_DIR), {'Cache-Control':'no-store'});
+  }
+
   if (req.method === "GET" && url.pathname === "/api/bootstrap") {
     const month = url.searchParams.get("month") || reportMonth();
     const payload = {
@@ -295,7 +303,17 @@ function serveStatic(req, res, url) {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
   try {
-    if (url.pathname.startsWith("/api/")) {
+    if (url.pathname === '/cabinet' && req.method === 'GET') {
+      const user = getCurrentUser(req);
+      if (!user) {res.writeHead(302, {Location:'/', 'Cache-Control':'no-store'});res.end();return;}
+      requireRole(user, ['owner', 'accountant', 'viewer']);
+      const content = fs.readFileSync(path.join(PRIVATE_DIR, 'cabinet.html'));
+      res.writeHead(200, {'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store, private','X-Frame-Options':'SAMEORIGIN','X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin',
+        'Content-Security-Policy':"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'self'; base-uri 'none'"});
+      res.end(content);
+    } else if (url.pathname === '/' && !url.searchParams.has('legacy') && ['owner','accountant','viewer'].includes(getCurrentUser(req)?.role)) {
+      res.writeHead(302, {Location:'/cabinet', 'Cache-Control':'no-store'});res.end();
+    } else if (url.pathname.startsWith("/api/")) {
       await handleApi(req, res, url);
     } else {
       serveStatic(req, res, url);
