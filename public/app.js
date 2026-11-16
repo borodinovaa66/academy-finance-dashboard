@@ -670,7 +670,7 @@ async function init() {
   }
   state.user = me.user;
   if (['owner', 'accountant', 'viewer'].includes(me.user.role) && new URLSearchParams(location.search).get('legacy') !== '1') {
-    window.location.replace('/cabinet');
+    window.location.replace('/cabinet' + (window.location.hash === '#daily' ? '#daily' : ''));
     return;
   }
   byId("loginScreen").classList.add("hidden");

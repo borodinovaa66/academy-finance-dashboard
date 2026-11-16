@@ -34,7 +34,8 @@
    function setup(id,label,min,max){const box=q('#'+id),w=box.clientWidth,h=220,L=43,R=12,T=14,B=27;if(w<100)return null;const low=Math.min(min,0),high=Math.max(max,0),span=high-low||1;
     const dates=rows.map(r=>Date.parse(r.date+'T00:00:00Z')),first=Date.parse(report.month+'-01T00:00:00Z'),last=dates.at(-1),x=i=>L+(dates[i]-first)/Math.max(last-first,86400000)*(w-L-R),y=v=>T+(high-v)/span*(h-T-B);
     const svg=node('svg',{viewBox:`0 0 ${w} ${h}`,class:'dc-chart',role:'img','aria-label':label});
-    for(const v of [low,(low+high)/2,high]){svg.append(node('line',{x1:L,x2:w-R,y1:y(v),y2:y(v),stroke:'#e2e7ed'}),node('text',{x:L-6,y:y(v)+4,'text-anchor':'end'},(v/1e6).toLocaleString('ru-RU',{maximumFractionDigits:2})));}
+    const ticks=[...new Set(low<0&&high>0?[low,0,high]:[low,(low+high)/2,high])];
+    for(const v of ticks){svg.append(node('line',{x1:L,x2:w-R,y1:y(v),y2:y(v),stroke:'#e2e7ed'}),node('text',{x:L-6,y:y(v)+4,'text-anchor':'end'},(v/1e6).toLocaleString('ru-RU',{maximumFractionDigits:2})));}
     svg.append(node('text',{x:L,y:10},'млн ₽'));
     [...new Set([0,Math.floor((rows.length-1)/2),rows.length-1])].forEach(i=>svg.append(node('text',{x:x(i),y:h-5,'text-anchor':i===0?'start':i===rows.length-1?'end':'middle'},rows[i].date.slice(8)+'.'+rows[i].date.slice(5,7))));
     box.append(svg);return {svg,node,x,y,w,L,R};
