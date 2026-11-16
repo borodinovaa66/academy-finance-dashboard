@@ -12,7 +12,7 @@
  function render(){
    if(!report)return;
    const bank=report.source==='bank',rows=report.rows||[],last=rows.at(-1),t=report.totals;
-   q('#daily-scope').textContent=(report.scope||'')+(report.asOf?' · Проверено '+new Date(report.asOf).toLocaleString('ru-RU',{timeZone:'Asia/Dubai'})+' Дубай':'');
+   q('#daily-scope').textContent=JSON.parse(q('#real-data').textContent).entity+' · '+(report.scope||'')+(report.asOf?' · Проверено '+new Date(report.asOf).toLocaleString('ru-RU',{timeZone:'Asia/Dubai'})+' Дубай':'');
    q('#daily-status').textContent=bank?(t?`Полная выписка Т-Банка по ${fmt(report.throughDate)} включительно. ВТБ и другие организации не включены.`:'За выбранный месяц банковского снимка нет.'):
      (t?`Ручной ввод по ${fmt(report.throughDate)}. Нарастание только по внесённым дням; полнота месяца не подтверждена.`:`За выбранный месяц записей бухгалтерии нет.${report.latestAvailableDate?' Последняя запись источника: '+fmt(report.latestAvailableDate)+'.':''}`);
    if(bank&&report.month===currentMonth&&report.throughDate&&report.throughDate<yesterday)q('#daily-status').textContent+=' Обновление отстаёт: дата данных раньше вчерашнего дня.';

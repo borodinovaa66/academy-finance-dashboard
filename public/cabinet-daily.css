@@ -16,5 +16,6 @@
 #finance-cabinet-v2 #daily-checks{margin:10px 0}
 #finance-cabinet-v2 #cabinet-logout{margin-left:auto}
 #finance-cabinet-v2 a[hidden]{display:none!important}
+#finance-cabinet-v2 .fc-meta[hidden],#finance-cabinet-v2 .fc-demo[hidden]{display:none!important}
 @media(max-width:750px){#finance-cabinet-v2 .dc-charts{grid-template-columns:1fr}#finance-cabinet-v2 .dc-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:420px){#finance-cabinet-v2 .dc-controls label{width:100%}#finance-cabinet-v2 .dc-kpis strong{font-size:20px}#finance-cabinet-v2 .dc-kpis article{padding:12px}}

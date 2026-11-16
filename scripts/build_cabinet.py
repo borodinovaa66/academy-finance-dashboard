@@ -8,6 +8,7 @@ assert 'REAL-OCTOBER-RECONCILIATION-2026-11-16' in html
 policy="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'"
 html=re.sub(r'<meta[^>]*http-equiv="Content-Security-Policy"[^>]*>', '<meta http-equiv="Content-Security-Policy" content="'+policy+'">', html, count=1)
 html=html.replace("['overview','pnl','cash']","['overview','pnl','cash','daily']")
+html=html.replace('function screen(name,persist=true){state.screen=name;', 'function screen(name,persist=true){state.screen=name;q(".fc-meta").hidden=name==="daily";q(".fc-demo").hidden=name==="daily";',1)
 button='<button type="button" class="fc-tab" data-screen="daily" aria-selected="false" id="fc-tab-daily">Ежедневный отчёт</button>'
 html=html.replace('</nav>',button+'</nav>',1)
 section='''
