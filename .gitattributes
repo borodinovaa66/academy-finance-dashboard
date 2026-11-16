@@ -1,0 +1,6 @@
+# Preserve the exact approved public CA bundle across Windows/Linux checkouts.
+server-bank/bank-ca-bundle.pem binary
+server-bank/*.py text eol=lf
+server-bank/*.service text eol=lf
+server-bank/*.timer text eol=lf
+server-bank/requirements.txt text eol=lf

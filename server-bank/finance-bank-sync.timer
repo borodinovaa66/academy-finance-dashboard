@@ -1,0 +1,12 @@
+[Unit]
+Description=Update the daily finance report at 11:00 Moscow
+
+[Timer]
+OnCalendar=*-*-* 11:00:00 Europe/Moscow
+Persistent=true
+AccuracySec=1min
+RandomizedDelaySec=0
+Unit=finance-bank-sync.service
+
+[Install]
+WantedBy=timers.target

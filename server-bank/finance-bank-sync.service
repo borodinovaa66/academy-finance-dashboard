@@ -1,0 +1,33 @@
+[Unit]
+Description=Read-only bank daily collection for the finance cabinet
+Wants=network-online.target
+After=network-online.target
+OnSuccess=finance-bank-publish.service
+
+[Service]
+Type=oneshot
+User=financebank
+Group=financebank
+WorkingDirectory=/opt/finance-bank-sync
+ExecStart=/opt/finance-bank-sync/venv/bin/python -X utf8 /opt/finance-bank-sync/server_collect.py
+LoadCredentialEncrypted=bank-token:/etc/credstore.encrypted/finance-bank-token
+StateDirectory=finance-bank-sync
+StateDirectoryMode=0700
+Environment=PYTHONDONTWRITEBYTECODE=1
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+InaccessiblePaths=/opt/finance-dashboard
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+CapabilityBoundingSet=
+MemoryMax=256M
+TimeoutStartSec=15min

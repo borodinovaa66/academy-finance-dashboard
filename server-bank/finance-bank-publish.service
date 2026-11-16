@@ -1,0 +1,23 @@
+[Unit]
+Description=Publish verified aggregate bank snapshot without bank credentials
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/finance-bank-sync
+ExecStart=/opt/finance-bank-sync/venv/bin/python -X utf8 /opt/finance-bank-sync/publish_server.py
+Environment=PYTHONDONTWRITEBYTECODE=1
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/opt/finance-dashboard/private /var/lib/finance-bank-sync
+ProtectHome=yes
+InaccessiblePaths=/opt/finance-dashboard/data /opt/finance-dashboard/.env /etc/credstore.encrypted
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_UNIX
+RestrictNamespaces=yes
+CapabilityBoundingSet=CAP_CHOWN CAP_DAC_OVERRIDE CAP_FOWNER
+TimeoutStartSec=60s
