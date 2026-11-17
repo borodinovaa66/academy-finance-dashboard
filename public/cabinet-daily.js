@@ -13,23 +13,25 @@
    if(!report)return;
    const bank=report.source==='bank',rows=report.rows||[],last=rows.at(-1),t=report.totals;
    q('#daily-scope').textContent=JSON.parse(q('#real-data').textContent).entity+' · '+(report.scope||'')+(report.asOf?' · Проверено '+new Date(report.asOf).toLocaleString('ru-RU',{timeZone:'Asia/Dubai'})+' Дубай':'');
-   q('#daily-status').textContent=bank?(t?`Полная выписка Т-Банка по ${fmt(report.throughDate)} включительно. ВТБ и другие организации не включены.`:'За выбранный месяц банковского снимка нет.'):
+   q('#daily-status').textContent=bank?(t?`${report.bankScope==='combined'?'Т-Банк + ВТБ':report.bankScope==='vtb'?'ВТБ':'Т-Банк'} по ${fmt(report.throughDate)} включительно. Полный охват компании не подтверждён.`:'За выбранный месяц банковского снимка нет.'):
      (t?`Ручной ввод по ${fmt(report.throughDate)}. Нарастание только по внесённым дням; полнота месяца не подтверждена.`:`За выбранный месяц записей бухгалтерии нет.${report.latestAvailableDate?' Последняя запись источника: '+fmt(report.latestAvailableDate)+'.':''}`);
    if(bank&&report.month===currentMonth&&report.throughDate&&report.throughDate<yesterday)q('#daily-status').textContent+=' Обновление отстаёт: дата данных раньше вчерашнего дня.';
+   if(report.sourceWarning)q('#daily-status').textContent+=' '+report.sourceWarning;
    q('#daily-latest').hidden=bank||!report.latestAvailableDate||report.latestAvailableDate.startsWith(report.month);
    const period=t?'С 1-го числа по '+fmt(report.throughDate):'Нет подтверждённых данных';
    q('#daily-totals').innerHTML=card('Поступления за месяц',t?.externalIncome,period)+card('Списания за месяц',t?.externalExpense,'Включают опознанные возвраты')+card('Денежный поток за месяц',t?.netFlow,'Поступления + проценты − списания')+
-     card('Возвраты за месяц',t?.refunds,'Уже включены в списания')+card('Проценты за месяц',t?.interest,bank?'Однократно, без возврата уже начисленных процентов':'Из ручного ввода')+card('Остаток на конец периода',t?.cashBalance,report.throughDate?fmt(report.throughDate)+' · не сумма дневных остатков':'—');
+     card('Возвраты за месяц',t?.refunds,'Уже включены в списания')+card('Проценты за месяц',t?.interest,bank?'Однократно, без возврата уже начисленных процентов':'Из ручного ввода')+card('Остатки учтённых счетов',t?.cashBalance,report.throughDate?fmt(report.throughDate)+' · депозит ВТБ не включён':'—');
    q('#daily-day-title').textContent='Последний подтверждённый день'+(last?' · '+fmt(last.date):'');
    const dayNote=last?(bank?`${last.operationCount} операций в выписке`:'Ручная запись'):'Нет подтверждённых данных';
    q('#daily-day-totals').innerHTML=card('Поступления за день',last?.externalIncome,dayNote)+card('Списания за день',last?.externalExpense,dayNote)+card('Проценты за день',last?.interest,dayNote)+card('Денежный поток за день',last?.netFlow,dayNote);
-   renderBudget();
+   if(t?.ownerWithdrawal!==undefined)q('#daily-totals').innerHTML+=card('Вывод собственнику',t.ownerWithdrawal,'Отдельно от расходов бизнеса')+card('Чистое размещение ВТБ',(t.depositPlaced||0)-(t.depositReturned||0),'По движениям; доступный депозитный остаток не подтверждён');
+   renderBudget();renderEvidence();
    q('#daily-rows').innerHTML=[...rows].reverse().map(r=>`<tr><td>${fmt(r.date)}</td>${[r.externalIncome,r.interest,r.externalExpense,r.refunds,r.netFlow,r.cashBalance,r.cumulative.externalIncome,r.cumulative.externalExpense,r.cumulative.netFlow].map(v=>`<td class="num">${money(v)}</td>`).join('')}</tr>`).join('')+(t?`<tr><td>Итого</td>${[t.externalIncome,t.interest,t.externalExpense,t.refunds,t.netFlow,t.cashBalance,t.externalIncome,t.externalExpense,t.netFlow].map(v=>`<td class="num">${money(v)}</td>`).join('')}</tr>`:'<tr><td colspan="10">Нет данных за этот месяц</td></tr>');
    q('#daily-table-title').textContent='День и нарастающий итог · '+(bank?'подтверждённые банковские операции':'записи бухгалтерии');
    q('#daily-definition').textContent='¹ Возвраты входят в списания; второй раз не вычитаются. '+(report.classification||'');
-   q('#daily-checks').textContent=bank?(t?`${report.operationCount} операций в полном снимке четырёх одобренных счетов. Проверены число операций, отсутствие дублей и равенство начальный остаток + поступления − списания = конечный остаток по каждому счёту. Евро в рублёвые итоги не сложены.`:'Предыдущие подтверждённые данные сохраняются при сбое обновления.'):
+   q('#daily-checks').textContent=bank?(t?`${report.operationCount} операций в выбранном банковском периметре. Снимки сверены с выписками; 1С служит контролем и повторно не прибавляется к деньгам. Евро в рублёвые итоги не сложены.`:'Предыдущие подтверждённые данные сохраняются при сбое обновления.'):
       (report.missingDays?.length?`До последней записи отсутствуют ${report.missingDays.length} календарных дней. Не заполнены нулями. `:'')+'Ручные записи не изменены автоматизацией. Их периметр и полнота требуют сверки с выписками.';
-   q('#daily-accounts').innerHTML=(report.accounts||[]).map(a=>`<tr><td>${esc(a.name)} · ${esc(a.suffix)}</td><td>${a.currency==='643'?'RUB':'EUR'}</td><td class="num">${a.operations}</td><td class="num">${Number(a.closing).toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>`).join('');
+   q('#daily-accounts').innerHTML=(report.accounts||[]).map(a=>`<tr><td>${esc(a.name)} · ${esc(a.suffix)} · ${fmt(a.closingDate||report.throughDate)}</td><td>${a.currency==='643'?'RUB':'EUR'}</td><td class="num">${a.operations}</td><td class="num">${Number(a.closing).toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>`).join('');
    charts();
  }
  function renderBudget(){
@@ -38,13 +40,21 @@
    q('#daily-source-details').hidden=!show;
    for(const id of ['daily-budget-kpis','daily-budget-income','daily-budget-expense','daily-source-rows'])q('#'+id).replaceChildren();
    q('#daily-budget-expense-note').textContent=show?p.expense.note:'';
-   q('#daily-budget-gap').textContent=show?'План на день и нарастающий план пока отсутствуют: нет дат и подтверждений оплат. Процент исполнения общего плана не рассчитан: факт охватывает Т-Банк, план — все каналы поступлений. Линейное распределение по дням не применяется.':'Плановые значения не заменены нулями.';
+   q('#daily-budget-gap').textContent=show?'План на день и нарастающий план пока отсутствуют: нет дат и подтверждений оплат. Процент исполнения общего плана не рассчитан: факт охватывает выбранные счета, план — все каналы поступлений. Линейное распределение по дням не применяется.':'Плановые значения не заменены нулями.';
    if(!show)return;
    q('#daily-budget-kpis').innerHTML=card('Цель поступлений на месяц',p.income.total,'Все каналы · цель продаж')+card('Из них сбор дебиторки',p.income.receivables,'Не весь остаток долга, а план сбора')+card('Остальные продажи',p.income.newSales,'Даты поступлений ещё не подтверждены');
    q('#daily-budget-income').innerHTML=p.income.rows.map(r=>`<tr><td>${esc(r.name)}</td><td class="num">${money(r.amount)}</td></tr>`).join('')+`<tr><td><strong>Итого цель поступлений</strong></td><td class="num"><strong>${money(p.income.total)}</strong></td></tr>`;
    q('#daily-budget-expense').innerHTML=p.expense.blocks.map(r=>`<tr><td>${esc(r.name)}</td><td class="num">${money(r.amount)}</td></tr>`).join('')+`<tr><td><strong>Итого проект</strong></td><td class="num"><strong>${money(p.expense.total)}</strong></td></tr>`;
-   q('#daily-source-rows').innerHTML=p.sources.map(r=>`<tr><td>${/^https:\/\//.test(r.url)?`<a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(r.name)}</a>`:esc(r.name)}</td><td>${esc(r.status)}</td><td>${esc(r.detail)}</td></tr>`).join('');
+   q('#daily-source-rows').innerHTML=p.sources.filter(r=>!report.evidence||!/ВТБ|1С|дебитор/i.test(r.name)).map(r=>`<tr><td>${/^https:\/\//.test(r.url)?`<a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(r.name)}</a>`:esc(r.name)}</td><td>${esc(r.status)}</td><td>${esc(r.detail)}</td></tr>`).join('');
    const link=document.createElement('a');link.href=p.sourceUrl;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Открыть исходный бюджет ↗';q('#daily-budget-status').append(' · ',link);
+ }
+ function renderEvidence(){
+   const box=q('#daily-evidence'),e=report.evidence;box.hidden=!e;if(!e)return;
+   const d=e.receivables,c=e.onec;
+   const names={tbank:'Т-Банк',vtb:'ВТБ',receivables:'Дебиторка',onec:'1С',raiffeisen:'Райффайзен'};
+   box.innerHTML='<h3>Источники и сверка</h3><p class="ov-note">Экран проверяет сервер каждую минуту. Это не означает непрерывное обновление исходных систем.</p><div class="fc-table-wrap"><table><thead><tr><th>Источник</th><th>Режим и свежесть</th></tr></thead><tbody>'+Object.entries(e.status||{}).map(([k,v])=>`<tr><td>${esc(names[k]||k)}</td><td>${esc(v)}</td></tr>`).join('')+'</tbody></table></div>';
+   if(c)box.innerHTML+=`<h4>Контроль по 1С · ${fmt(c.asOf)}</h4><p>${esc(c.rows)} банковских документов: Т-Банк ${esc(c.bankCounts.tbank)}, ВТБ ${esc(c.bankCounts.vtb)}. Сеанс завершён.</p>`+(c.notes||[]).map(n=>`<p class="ov-note">${esc(n)}</p>`).join('');
+   if(d)box.innerHTML+=`<h4>Дебиторка и ожидаемые поступления</h4><p>Экспорт ${fmt(d.asOfExport)}; последняя явная отметка обновления ${fmt(d.lastExplicitUpdate)}. <a href="${esc(d.sourceUrl)}" target="_blank" rel="noopener noreferrer">Исходная таблица ↗</a></p><p class="real-warning">Полный остаток и просрочка не определены. ${esc(d.scope)}</p><div class="fc-table-wrap"><table><thead><tr><th>Поток</th><th>Строк выборки</th><th class="num">Стоимость минус оплаты</th><th>Обновление</th></tr></thead><tbody>`+(d.cohorts||[]).map(r=>`<tr><td>${esc(r.name)}</td><td>${r.records}</td><td class="num">${money(r.nominalOutstanding)}</td><td>${fmt(r.updatedAt)}</td></tr>`).join('')+'</tbody></table></div>'+(d.expected||[]).map(r=>`<p class="real-warning">Ожидание из заметки: ${money(r.amount)} к ${fmt(r.date)}. ${esc(r.status)}; год выведен из названия потока. Источник: ${esc(r.sourceSheet)}, ${esc(r.sourceCell)}.</p>`).join('')+(d.notes||[]).map(n=>`<p class="ov-note">${esc(n)}</p>`).join('')+'<details><summary>Ошибки исходных формул и ограничения</summary>'+(d.issues||[]).map(n=>`<p>${esc(n)}</p>`).join('')+'</details>';
  }
  function charts(){
    const rows=report?.rows||[];for(const id of ['daily-bars','daily-curve'])q('#'+id).replaceChildren();if(!rows.length||q('#fc-daily').hidden)return;
@@ -71,5 +81,5 @@
  api('/api/auth/me').then(data=>{q('#daily-legacy').hidden=data.user?.role!=='accountant';}).catch(()=>{});
  if(location.hash==='#daily')q('#fc-tab-daily').click();else if(!q('#fc-daily').hidden)load();
  let width=0;new ResizeObserver(()=>{if(q('#fc-daily').clientWidth!==width){width=q('#fc-daily').clientWidth;charts();}}).observe(q('#fc-daily'));
- setInterval(()=>{if(!document.hidden&&!q('#fc-daily').hidden)load();},300000);
+ setInterval(()=>{if(!document.hidden&&!q('#fc-daily').hidden)load();},60000);
 })();

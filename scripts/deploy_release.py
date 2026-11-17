@@ -5,12 +5,14 @@ from datetime import datetime,timezone
 
 FILES={'.gitignore','server.js','src/database.js','src/daily.js','public/app.js','public/cabinet-daily.js','public/cabinet-daily.css',
        'scripts/publish_snapshot.py','private/cabinet.html','private/bank-daily.json'}
+SOURCES_FILES={'src/daily.js','src/daily-sources.js','public/cabinet-daily.js','private/cabinet.html','private/daily-supplement.json'}
 BUDGET_FILES={'src/daily.js','src/cash-plan.js','public/cabinet-daily.js','public/cabinet-daily.css','private/cabinet.html','private/cash-plan.json'}
 
 def run(*cmd):return subprocess.run(cmd,check=True,capture_output=True,text=True).stdout.strip()
 def main():
-    p=argparse.ArgumentParser();p.add_argument('archive');p.add_argument('sha256');p.add_argument('commit');p.add_argument('--budget-only',action='store_true');args=p.parse_args()
-    files=BUDGET_FILES if args.budget_only else FILES
+    p=argparse.ArgumentParser();p.add_argument('archive');p.add_argument('sha256');p.add_argument('commit');p.add_argument('--budget-only',action='store_true');p.add_argument('--sources-only',action='store_true');args=p.parse_args()
+    if args.budget_only and args.sources_only:raise ValueError('Choose one release scope')
+    files=SOURCES_FILES if args.sources_only else BUDGET_FILES if args.budget_only else FILES
     archive=Path(args.archive)
     if archive.resolve().parent!=Path('/tmp') or archive.is_symlink() or not archive.name.startswith('finance-cabinet-release-'):raise ValueError('Unexpected release archive')
     if hashlib.sha256(archive.read_bytes()).hexdigest()!=args.sha256:raise ValueError('Archive checksum mismatch')
@@ -24,7 +26,16 @@ def main():
         members=tar.getmembers()
         if {m.name for m in members}!=files or any(not m.isfile() for m in members):raise ValueError('Release contains unexpected files')
         tar.extractall(staged,filter='data')
-    if args.budget_only:
+    if args.sources_only:
+        checked=json.loads(run('/usr/bin/node','-e',"console.log(JSON.stringify(require(process.argv[1]).readSupplement(process.argv[2])))",str(staged/'src/daily-sources.js'),str(staged/'private')))
+        if checked['vtb']['months']['2026-11']['operationCount']!=30 or checked['onec']['rows']!=129:raise ValueError('Unexpected supplemental proof')
+        # Validate the staged API against live bank and budget files without replacing them.
+        for dependency in (target/'src').glob('*.js'):
+            if not (staged/'src'/dependency.name).exists():shutil.copy2(dependency,staged/'src'/dependency.name)
+        shutil.copy2(target/'private/bank-daily.json',staged/'private/bank-daily.json')
+        checked=json.loads(run('/usr/bin/node','-e',"console.log(JSON.stringify(require(process.argv[1]).readDailyReport(null,'2026-11','bank',process.argv[2])))",str(staged/'src/daily.js'),str(staged/'private')))
+        if checked['operationCount']!=132 or checked['totals']['netFlow']!=879279.95:raise ValueError('Live bank union differs from reviewed total')
+    elif args.budget_only:
         checked=json.loads(run('/usr/bin/node','-e',"console.log(JSON.stringify(require(process.argv[1]).readCashPlan(process.argv[2],'2026-11')))",str(staged/'src/cash-plan.js'),str(staged/'private')))
         if checked['income']['total']!=11755000 or checked['expense']['total']!=7194381:raise ValueError('Unexpected reviewed budget')
     else:

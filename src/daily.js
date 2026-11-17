@@ -1,6 +1,7 @@
 const fs=require('node:fs');
 const path=require('node:path');
 const {readCashPlan}=require('./cash-plan');
+const {readSupplement,combineBankReports}=require('./daily-sources');
 const fields=['externalIncome','interest','externalExpense','refunds'];
 const cents=v=>Math.round(Number(v||0)*100);
 const rub=v=>v/100;
@@ -35,13 +36,19 @@ function readDailyReport(db,month,source,privateDir){
     const latest=db.prepare("SELECT MAX(report_date) date FROM daily_entries WHERE status='confirmed' AND comment NOT LIKE '%Стартовые данные из примера%'").get();
     return {...manualReport(entries,month,new Date().toISOString().slice(0,10)),latestAvailableDate:latest?.date||null,budget,budgetWarning};
   }
-  if(source!=='bank')throw Object.assign(new Error('Неизвестный источник'),{statusCode:400});
+  if(!['bank','tbank','vtb'].includes(source))throw Object.assign(new Error('Неизвестный источник'),{statusCode:400});
+  let supplement=null,sourceWarning=null;
+  try{supplement=readSupplement(privateDir);}catch{sourceWarning='Дополнительные источники не прошли проверку. Подтверждённые данные Т-Банка сохранены.';}
   const file=path.join(privateDir,'bank-daily.json');
-  if(!fs.existsSync(file))return {month,source:'bank',rows:[],totals:null,complete:false,scope:'Т-Банк · автоматический снимок ещё не получен',budget,budgetWarning};
-  const snapshot=JSON.parse(fs.readFileSync(file,'utf8'));
-  const availableMonths=Object.keys(snapshot.months||{}).sort();
-  const report=snapshot.months?.[month];
-  return report?{...report,updatedAt:snapshot.updatedAt,availableMonths,fullCompanyCoverage:false,budget,budgetWarning}:
-    {month,source:'bank',rows:[],totals:null,complete:false,scope:'Т-Банк · за выбранный месяц снимка нет',availableMonths,budget,budgetWarning};
+  const snapshot=fs.existsSync(file)?JSON.parse(fs.readFileSync(file,'utf8')):{months:{}};
+  const tbank=snapshot.months?.[month],vtb=supplement?.vtb?.months?.[month];
+  const availableMonths=[...new Set([...Object.keys(snapshot.months||{}),...Object.keys(supplement?.vtb?.months||{})])].sort();
+  let report=source==='vtb'?vtb:source==='tbank'?tbank:(tbank&&vtb?combineBankReports(tbank,vtb,month):tbank||vtb);
+  const bank=report===vtb?'vtb':'tbank';
+  if(report&&!report.bankScope)report={...report,bankScope:bank,sourceCoverage:[{bank,throughDate:report.throughDate,asOf:report.asOf||snapshot.updatedAt,complete:report.complete}]};
+  if(report?.missingDays?.length)sourceWarning='В источниках есть пропуски дней: общий итог включает только совместно подтверждённые дни, это не полный итог периода.';
+  if(!sourceWarning&&report?.sourceCoverage?.some(r=>r.throughDate!==report.throughDate))sourceWarning='Общий итог ограничен общей датой банков. Более свежие данные доступны в отдельных источниках.';
+  const evidence=month==='2026-11'&&supplement?{updatedAt:supplement.updatedAt,receivables:supplement.receivables,onec:supplement.onec,status:supplement.status}:null;
+  return {...(report||{month,source:'bank',rows:[],totals:null,complete:false,scope:'За выбранный месяц банковского снимка нет'}),updatedAt:snapshot.updatedAt,availableMonths,fullCompanyCoverage:false,budget,budgetWarning,sourceWarning,evidence};
 }
 module.exports={manualReport,validateMonth,readDailyReport};
