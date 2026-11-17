@@ -108,9 +108,9 @@
     bq('#budget-notes').innerHTML = report.notes.map(note => '<li>'+esc(note)+'</li>').join('');
     bq('#budget-gaps').innerHTML = (report.gaps || []).map(gap => `<p><strong>${esc(gap.name)} — не определено.</strong> ${esc(gap.detail)}</p>`).join('');
     const sync=report.sync||{},date=value=>value?new Date(value).toLocaleString('ru-RU',{timeZone:'Europe/Moscow'})+' МСК':'ещё нет';
-    const stale=!sync.lastSuccessAt||Date.now()-Date.parse(sync.lastSuccessAt)>5*60*1000;
+    const stale=!sync.lastSuccessAt||sync.stale===true;
     const errors={GOOGLE_ACCESS_DENIED:'нужно восстановить доступ учётной записи синхронизации',SOURCE_EDIT_IN_PROGRESS:'таблица менялась во время чтения',SHEET_ERROR:'в исходной таблице есть ошибка формулы',SOURCE_TOTAL_MISMATCH:'не сходятся итоги исходного бюджета',BLOCK_TOTAL_MISMATCH:'не сходятся суммы блоков',SOURCE_SCHEMA_CHANGED:'изменена структура исходной таблицы'};
-    bq('#budget-sync-status').textContent=sync.state==='not_configured'?'Показана сохранённая версия; серверная синхронизация ещё не подключена.':sync.state==='error'||stale?`Показана последняя проверенная версия. ${errors[sync.errorCode]||'Обновление источника временно не подтверждено'}. Успешная проверка: ${date(sync.lastSuccessAt)}.`:`Синхронизация Google включена · проверка каждые 2 минуты · проверено ${date(sync.lastSuccessAt)}. Эта страница обновляется сама.`;
+    bq('#budget-sync-status').textContent=sync.state==='not_configured'?'Показана сохранённая версия; серверная синхронизация ещё не подключена.':sync.state==='error'||stale?`Показана последняя проверенная версия. ${errors[sync.errorCode]||'Обновление источника временно не подтверждено'}. Успешная проверка: ${date(sync.lastSuccessAt)}.`:`Синхронизация Google: ежедневно в 09:00 и 16:00 МСК · проверено ${date(sync.lastSuccessAt)} · следующая проверка ${date(sync.nextCheckAt)}.`;
     bq('#budget-version-note').textContent = `Версия источников на ${report.asOf.split('-').reverse().join('.')}. Опубликована ${date(sync.publishedAt)}. ${report.personalDetailVisible?'Персональные строки доступны в твоей роли собственника.':'Доступны агрегаты; персональные зарплаты скрыты.'}`;
     bq('#budget-sources').innerHTML = (report.sources || []).map(sourceLink).join('');
   }
