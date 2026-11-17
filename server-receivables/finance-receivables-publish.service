@@ -1,0 +1,26 @@
+[Unit]
+Description=Publish validated receivables aggregates without network or credentials
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/finance-receivables-publisher
+ExecStart=/usr/bin/node /opt/finance-receivables-sync/server-receivables/publish.js
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateNetwork=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/finance-dashboard/private
+InaccessiblePaths=/etc/credstore.encrypted /opt/finance-dashboard/data /opt/finance-bank-sync /var/lib/finance-bank-sync /opt/finance-budget-sync /var/lib/finance-budget-sync
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_UNIX
+CapabilityBoundingSet=CAP_CHOWN CAP_DAC_OVERRIDE CAP_FOWNER
+MemoryMax=128M
+TimeoutStartSec=30

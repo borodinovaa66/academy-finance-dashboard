@@ -1,0 +1,33 @@
+[Unit]
+Description=Read receivables with a dedicated Google reader
+Wants=network-online.target
+After=network-online.target
+OnSuccess=finance-receivables-publish.service
+OnFailure=finance-receivables-publish.service
+
+[Service]
+Type=oneshot
+User=financereceivables
+Group=financereceivables
+WorkingDirectory=/opt/finance-receivables-sync
+ExecStart=/usr/bin/node /opt/finance-receivables-sync/server-receivables/collect.js
+LoadCredentialEncrypted=google-budget:/etc/credstore.encrypted/finance-budget-google
+StateDirectory=finance-receivables-sync
+StateDirectoryMode=0700
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+InaccessiblePaths=/opt/finance-dashboard /opt/finance-bank-sync /var/lib/finance-bank-sync /opt/finance-budget-sync /var/lib/finance-budget-sync
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+CapabilityBoundingSet=
+MemoryMax=256M
+TimeoutStartSec=120

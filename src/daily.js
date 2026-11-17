@@ -1,7 +1,7 @@
 const fs=require('node:fs');
 const path=require('node:path');
 const {readCashPlan}=require('./cash-plan');
-const {readSupplement,combineBankReports}=require('./daily-sources');
+const {readSupplement,combineBankReports,readLiveReceivables}=require('./daily-sources');
 const fields=['externalIncome','interest','externalExpense','refunds'];
 const cents=v=>Math.round(Number(v||0)*100);
 const rub=v=>v/100;
@@ -49,6 +49,13 @@ function readDailyReport(db,month,source,privateDir){
   if(report?.missingDays?.length)sourceWarning='В источниках есть пропуски дней: общий итог включает только совместно подтверждённые дни, это не полный итог периода.';
   if(!sourceWarning&&report?.sourceCoverage?.some(r=>r.throughDate!==report.throughDate))sourceWarning='Общий итог ограничен общей датой банков. Более свежие данные доступны в отдельных источниках.';
   const evidence=month==='2026-11'&&supplement?{updatedAt:supplement.updatedAt,receivables:supplement.receivables,onec:supplement.onec,status:supplement.status}:null;
+  if(evidence){
+    let live=null;try{live=readLiveReceivables(privateDir);}catch{live={sync:{state:'error',errorCode:'LIVE_SNAPSHOT_INVALID'}};}
+    if(live){if(live.receivables)evidence.receivables=live.receivables;evidence.receivablesSync=live.sync;
+      const stale=!live.sync.lastSuccessAt||Date.now()-Date.parse(live.sync.lastSuccessAt)>15*60*1000;
+      evidence.status={...evidence.status,receivables:live.sync.state==='ok'&&!stale?'Серверное чтение каждые5минут; последняя проверка '+live.sync.lastSuccessAt:'Ошибка или задержка серверного чтения; сохранён последний корректный снимок',onec:'Автоподключение заблокировано: HTTP401; вScloud ограниченные права, требуется публикацияOData провайдером. Последняя выгрузка1С сохранена'};
+    }
+  }
   return {...(report||{month,source:'bank',rows:[],totals:null,complete:false,scope:'За выбранный месяц банковского снимка нет'}),updatedAt:snapshot.updatedAt,availableMonths,fullCompanyCoverage:false,budget,budgetWarning,sourceWarning,evidence};
 }
 module.exports={manualReport,validateMonth,readDailyReport};

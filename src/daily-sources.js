@@ -156,4 +156,33 @@ function combineBankReports(tbank,vtb,month){
     accounts:[['tbank',tbank],['vtb',vtb]].flatMap(([bank,report])=>projectReport(report).accounts.map(account=>({...account,bank,source:'bank',closingDate:account.closingDate||report.throughDate}))),
     classification:'Проценты включены в денежный результат; возвраты входят в списания и повторно не вычитаются. Тело депозитов и вывод владельцу показаны отдельно. Остаток — на общую дату банков; остатки счетов в деталях имеют собственную дату. Число операций в объединённом ряду относится к рублёвым счетам.'};
 }
-module.exports={readSupplement,combineBankReports,validateBankReport};
+function validateReceivablesSync(s){
+ if(!object(s)||Object.keys(s).some(k=>!['state','checkedAt','lastSuccessAt','sourceHash','errorCode','publishedAt'].includes(k))||!['ok','error'].includes(s.state))return fail();
+ timestamp(s.checkedAt);for(const k of ['lastSuccessAt','publishedAt'])if(s[k]!=null)timestamp(s[k]);
+ if(s.sourceHash!==undefined&&(typeof s.sourceHash!=='string'||!/^[a-f0-9]{64}$/.test(s.sourceHash)))return fail();
+ if(s.errorCode!=null&&(typeof s.errorCode!=='string'||!/^[A-Z][A-Z0-9_]{2,80}$/.test(s.errorCode)))return fail();return s;
+}
+function validateReceivablesAggregate(d){
+ checkAggregate(d);
+ const keys=(v,allowed)=>{if(!object(v)||Object.keys(v).some(k=>!allowed.includes(k)))return fail();};
+ const text=(v,max=1000)=>{if(typeof v!=='string'||v.length>max)return fail();};
+ const day=(v,nullable=false)=>{if(v===null&&nullable)return;if(typeof v!=='string'||!/^20\d{2}-\d{2}-\d{2}$/.test(v)||new Date(v+'T00:00:00Z').toISOString().slice(0,10)!==v)return fail();};
+ const integer=v=>{if(!Number.isSafeInteger(v)||v<0)return fail();};
+ keys(d,['asOfExport','checkedAt','lastExplicitUpdate','sourceUrl','scope','fullReceivables','overdue','cohorts','expected','issues','notes']);
+ if(d.fullReceivables!==null||d.overdue!==null||!Array.isArray(d.cohorts)||d.cohorts.length!==6||d.sourceUrl!=='https://docs.google.com/spreadsheets/d/1K6kSsEHBbDT_uIomyoeR1HuDsmUrWj9tiV03owSA524/edit')return fail();
+ timestamp(d.checkedAt);day(d.asOfExport);day(d.lastExplicitUpdate,true);text(d.scope);
+ const ids=new Set();for(const c of d.cohorts){keys(c,['name','records','nominalOutstanding','updatedAt','sourceSheet','excludedRecords']);text(c.name,150);integer(c.records);integer(c.sourceSheet);day(c.updatedAt,true);if(c.excludedRecords!==undefined)integer(c.excludedRecords);if(money(c.nominalOutstanding)<0||ids.has(c.sourceSheet))return fail();ids.add(c.sourceSheet);}
+ if(!Array.isArray(d.expected)||d.expected.length>1000)return fail();for(const e of d.expected){keys(e,['date','amount','status','sourceCell','sourceSheet','yearInferred']);day(e.date);text(e.status);text(e.sourceSheet,150);text(e.sourceCell,6);if(money(e.amount)<=0||!/^[A-X][1-9]\d{0,3}$/.test(e.sourceCell)||Number(e.sourceCell.slice(1))>2000||typeof e.yearInferred!=='boolean')return fail();}
+ for(const list of [d.issues,d.notes]){if(!Array.isArray(list))return fail();for(const v of list)text(v);}
+ return d;
+}
+function readLiveReceivables(privateDir){
+ const file=path.join(privateDir,'receivables-live.json');if(!fs.existsSync(file))return null;
+ const st=fs.lstatSync(file);if(!st.isFile()||st.isSymbolicLink()||st.size>256*1024)return fail();
+ const v=JSON.parse(fs.readFileSync(file,'utf8'));checkAggregate(v);
+ if(v.schemaVersion!==1||Object.keys(v).some(k=>!['schemaVersion','receivables','sync'].includes(k))||!object(v.sync)||!['ok','error'].includes(v.sync.state))return fail();
+ if(v.receivables)validateReceivablesAggregate(v.receivables);
+ validateReceivablesSync(v.sync);
+ return v;
+}
+module.exports={readSupplement,combineBankReports,validateBankReport,readLiveReceivables,validateReceivablesAggregate,validateReceivablesSync};

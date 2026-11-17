@@ -8,3 +8,8 @@ node_modules/
 ceo-dashboard/secrets/
 ceo-dashboard/.env
 voronka-dashboard/data/
+
+# Private operational evidence and provider draft
+ONEC_SERVER_ACCESS_REQUEST.txt
+RECEIVABLES_SYNC.md
+docs/superpowers/plans/2026-11-17-persistent-sources.md
