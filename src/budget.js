@@ -1,5 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
+const {generationFile,syncStatus}=require('./budget-generation');
 
 function validateBudgetSnapshot(data) {
   if (data?.schemaVersion !== 1 || !data.months || typeof data.months !== 'object') throw new Error('Invalid budget schema');
@@ -36,7 +37,7 @@ function validateBudgetSnapshot(data) {
 function readBudget(privateDir, month, role) {
   if (!['owner', 'accountant', 'viewer'].includes(role)) throw Object.assign(new Error('Недостаточно прав'), {statusCode: 403});
   if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw Object.assign(new Error('Некорректный месяц'), {statusCode: 400});
-  const file = path.join(privateDir, 'budget-explorer.json');
+  const file = generationFile(privateDir, 'budget-explorer.json');
   if (!fs.existsSync(file)) return null;
   const report = validateBudgetSnapshot(JSON.parse(fs.readFileSync(file, 'utf8'))).months[month];
   if (!report) return null;
@@ -47,13 +48,13 @@ function readBudget(privateDir, month, role) {
     }
     return {...node, ...(node.children ? {children: node.children.map(visible)} : {})};
   }
-  return {...report, month, income: visible(report.income), expense: visible(report.expense), personalDetailVisible: role === 'owner'};
+  return {...report, month, income: visible(report.income), expense: visible(report.expense), personalDetailVisible: role === 'owner',sync:syncStatus(privateDir)};
 }
 
 function injectBudgetAssets(html) {
   if (html.includes('id="cabinet-budget-module"')) return html;
-  return html.replace('</head>', '<link rel="stylesheet" href="/cabinet-budget.css?v=20261116-1"></head>')
-    .replace('</body>', '<script id="cabinet-budget-module" src="/cabinet-budget.js?v=20261116-1"></script></body>');
+  return html.replace('</head>', '<link rel="stylesheet" href="/cabinet-budget.css?v=20261117-sync1"></head>')
+    .replace('</body>', '<script id="cabinet-budget-module" src="/cabinet-budget.js?v=20261117-sync1"></script></body>');
 }
 
 module.exports = {validateBudgetSnapshot, readBudget, injectBudgetAssets};

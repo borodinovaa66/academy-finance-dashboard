@@ -1,9 +1,10 @@
 const fs=require('node:fs'),path=require('node:path');
+const {generationFile}=require('./budget-generation');
 
 // Budget targets and bank facts have different coverage. Keep that distinction
 // even when a month has a complete statement for the approved bank accounts.
 function readCashPlan(privateDir,month){
-  const file=path.join(privateDir,'cash-plan.json');
+  const file=generationFile(privateDir,'cash-plan.json');
   if(!fs.existsSync(file))return null;
   const data=JSON.parse(fs.readFileSync(file,'utf8'));
   if(data.schemaVersion!==1)throw new Error('Unsupported cash plan schema');
